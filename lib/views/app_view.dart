@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../models/task_status.dart';
 import '../viewmodels/task_view_model.dart';
+import 'package:intl/intl.dart';
+import 'add_task_dialog.dart';
 
 class AppView extends StatefulWidget {
   const AppView({super.key});
@@ -51,7 +52,10 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
       // Ekleme butonu
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Buraya tıklayınca Pop-up açılacak
+          showDialog(
+            context: context,
+            builder: (context) => const AddTaskDialog(),
+          );
         },
         backgroundColor: Theme.of(context).primaryColor,
         child: const Icon(Icons.add, color: Colors.white),
@@ -73,7 +77,7 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
         child: Row(
           children: <Widget>[
             IconButton(
-              icon: const Icon(Icons.home_outlined, color: Colors.grey, size: 32),
+              icon: const Icon(Icons.home_outlined, color: Colors.white, size: 32),
               onPressed: () {
               },
             ),
@@ -223,89 +227,94 @@ class TaskColumn extends StatelessWidget {
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: tasks.length,
-          itemBuilder: (context, index) {
-            final task = tasks[index];
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Başlık
-                  Text(
-                    task.title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.black87,
+            itemBuilder: (context, index) {
+              final task = tasks[index];
+
+              // TARİH FORMATLAMA İŞLEMİ
+              String formattedDate = task.deadline;
+              try {
+                DateTime parsedDate = DateTime.parse(task.deadline); // String'i tarihe çevir
+                formattedDate = DateFormat("d MMM").format(parsedDate); // "17 Feb" formatına çevir
+              } catch (e) {
+                // Eğer tarih boşsa veya bozuksa olduğu gibi kalsın
+              }
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.08),
+                      spreadRadius: 2,
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
-                  ),
-                  const SizedBox(height: 8),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Başlık
+                    Text(
+                      task.title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
 
-                  // Açıklama
-                  Text(
-                    task.description,
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                  ),
-                  const SizedBox(height: 16),
+                    // Açıklama
+                    Text(
+                      task.description,
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
+                    ),
+                    const SizedBox(height: 12),
 
-                  // Alt Kısım: Avatar ve Tarih
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Avatar
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 14,
-                            backgroundColor: Colors.grey[200],
-                            backgroundImage: const NetworkImage("https://i.pravatar.cc/150?img=12"),
+                    // Alt Satır: Avatar ve Tarih
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Avatar (Şimdilik statik)
+                        const CircleAvatar(
+                          radius: 12,
+                          backgroundImage: NetworkImage("https://i.pravatar.cc/150?img=12"),
+                        ),
+
+                        // Tarih Kutucuğu
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        ],
-                      ),
-
-                      // Tarih
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey[600]),
-                            const SizedBox(width: 4),
-                            Text(
-                              task.deadline,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.w500,
+                          child: Row(
+                            children: [
+                              Icon(Icons.calendar_month_outlined, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                              const SizedBox(width: 6),
+                              Text(
+                                formattedDate,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
         );
       },
     );
