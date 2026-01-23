@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/task_status.dart';
 import '../viewmodels/task_view_model.dart';
+import '../viewmodels/user_view_model.dart';
+import '../models/user_model.dart';
 
 class AddTaskDialog extends StatefulWidget {
   const AddTaskDialog({super.key});
@@ -16,23 +18,29 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
-  final TextEditingController _assigneeController = TextEditingController(); // Assignee eklendi
+  List<int> _selectedUserIds = [];
 
   TaskStatus _selectedStatus = TaskStatus.TODO;
   bool _isSaving = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<UserViewModel>().fetchUsers();
+    });
+  }
+
+  @override
   void dispose() {
     _titleController.dispose();
     _descController.dispose();
-    _assigneeController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isSaving = true);
-
       // TARİHİ OTOMATİK ALIYORUZ (BUGÜN)
       String formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
@@ -42,6 +50,7 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
           _descController.text,
           formattedDate,
           _selectedStatus,
+          _selectedUserIds,
         );
 
         if (mounted) {
@@ -138,11 +147,51 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
               ),
               const SizedBox(height: 12),
 
-              // 4. Assignee Input
-              _buildFigmaInput(
-                controller: _assigneeController,
-                hint: "Assignee",
-                // Not: Şimdilik backend'e gitmiyor çünkü backend ID bekliyor.
+              // 4. Assignee
+              Consumer<UserViewModel>(
+                builder: (context, userViewModel, child) {
+                  // Seçilen kişilerin isimlerini bulup virgülle birleştirir (Örn: "Ahmet, Ayşe")
+                  String selectedNames = userViewModel.users
+                      .where((user) => _selectedUserIds.contains(user.id))
+                      .map((user) => user.name)
+                      .join(", ");
+
+                  if (selectedNames.isEmpty) selectedNames = "Assignees"; // Kimse seçili değilse
+
+                  return GestureDetector(
+                    onTap: () {
+                      // Tıklayınca Seçim Ekranını Aç
+                      _showMultiSelectDialog(context, userViewModel.users);
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.people_outline, color: Colors.grey),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              selectedNames,
+                              style: TextStyle(
+                                color: _selectedUserIds.isEmpty
+                                    ? Colors.grey[600]
+                                    : Theme.of(context).colorScheme.onSurface,
+                                fontSize: 14,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 24),
 
@@ -168,7 +217,6 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
       ),
     );
   }
-
   // Input Widget
   Widget _buildFigmaInput({
     required TextEditingController controller,
@@ -190,6 +238,70 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
         ),
         contentPadding: const EdgeInsets.all(16),
       ),
+    );
+  }
+
+  void _showMultiSelectDialog(BuildContext context, List<User> users) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        // Dialog içinde seçim yaparken ekranın güncellenmesi için StatefulBuilder lazım
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: const Text("Select Assignees"),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: users.length,
+                  itemBuilder: (context, index) {
+                    final user = users[index];
+                    final isSelected = _selectedUserIds.contains(user.id);
+
+                    return CheckboxListTile(
+                      title: Row(
+                        children: [
+                          // Ufak Avatar
+                          CircleAvatar(
+                            radius: 12,
+                            backgroundImage: (user.profilePictureUrl != null && user.profilePictureUrl!.isNotEmpty)
+                                ? NetworkImage(user.profilePictureUrl!)
+                                : null,
+                            child: (user.profilePictureUrl == null || user.profilePictureUrl!.isEmpty)
+                                ? const Icon(Icons.person, size: 14)
+                                : null,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(user.name),
+                        ],
+                      ),
+                      value: isSelected,
+                      onChanged: (bool? value) {
+                        setStateDialog(() {
+                          if (value == true) {
+                            _selectedUserIds.add(user.id);
+                          } else {
+                            _selectedUserIds.remove(user.id);
+                          }
+                        });
+                        // Ana ekranı da güncelle ki arkadaki input alanı değişsin
+                        this.setState(() {});
+                      },
+                    );
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

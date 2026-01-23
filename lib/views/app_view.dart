@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/task_status.dart';
+import '../models/user_model.dart';
 import '../viewmodels/task_view_model.dart';
 import 'package:intl/intl.dart';
+import '../viewmodels/user_view_model.dart';
 import 'add_task_dialog.dart';
 
 class AppView extends StatefulWidget {
@@ -24,6 +26,7 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
     // Verileri çek
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TaskViewModel>().fetchTasks();
+      context.read<UserViewModel>().fetchUsers();
     });
   }
 
@@ -204,12 +207,13 @@ class TaskColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TaskViewModel>(
-      builder: (context, viewModel, child) {
+    return Consumer2<TaskViewModel, UserViewModel>(
+      builder: (context, viewModel, userViewModel, child) {
         if (viewModel.isLoading) return const Center(child: CircularProgressIndicator());
         if (viewModel.errorMessage != null) return Center(child: Text(viewModel.errorMessage!));
 
         final tasks = viewModel.getTasksByStatus(status);
+        final allUsers = userViewModel.users;
 
         if (tasks.isEmpty) {
           return Center(
@@ -238,6 +242,12 @@ class TaskColumn extends StatelessWidget {
               } catch (e) {
                 // Eğer tarih boşsa veya bozuksa olduğu gibi kalsın
               }
+
+              // GÖREVE ATANAN KULLANICILARI BULMA
+              // Görevin içindeki ID'lerle eşleşen kullanıcıları listele
+              final taskAssignees = allUsers
+                  .where((user) => task.assigneeIds.contains(user.id))
+                  .toList();
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -281,10 +291,43 @@ class TaskColumn extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Avatar (Şimdilik statik)
-                        const CircleAvatar(
-                          radius: 12,
-                          backgroundImage: NetworkImage("https://i.pravatar.cc/150?img=12"),
+                        taskAssignees.isEmpty
+                            ? Icon(Icons.person_off_outlined, size: 18, color: Colors.grey[300])
+                            : SizedBox(
+                          height: 24, // Avatar satırının yüksekliği
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            shrinkWrap: true, // Sadece içeriği kadar yer kapla
+                            itemCount: taskAssignees.length > 3 ? 4 : taskAssignees.length, // Max 3 kişi + (+1) göster
+                            itemBuilder: (context, userIndex) {
+                              // Eğer 3'ten fazla kişi varsa 4. balonda "+2" gibi sayı göster
+                              if (userIndex == 3) {
+                                return CircleAvatar(
+                                  radius: 12,
+                                  backgroundColor: Colors.grey[300],
+                                  child: Text(
+                                    "+${taskAssignees.length - 3}",
+                                    style: const TextStyle(fontSize: 10, color: Colors.black54, fontWeight: FontWeight.bold),
+                                  ),
+                                );
+                              }
+
+                              final user = taskAssignees[userIndex];
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 4.0), // Avatarlar arası boşluk
+                                child: CircleAvatar(
+                                  radius: 12,
+                                  backgroundColor: Colors.grey[200],
+                                  backgroundImage: (user.profilePictureUrl != null && user.profilePictureUrl!.isNotEmpty)
+                                      ? NetworkImage(user.profilePictureUrl!)
+                                      : null,
+                                  child: (user.profilePictureUrl == null || user.profilePictureUrl!.isEmpty)
+                                      ? const Icon(Icons.person, size: 14, color: Colors.grey)
+                                      : null,
+                                ),
+                              );
+                            },
+                          ),
                         ),
 
                         // Tarih Kutucuğu

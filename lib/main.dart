@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kanban_project/viewmodels/user_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:kanban_project/views/app_view.dart';
 import 'package:kanban_project/viewmodels/task_view_model.dart';
@@ -16,6 +17,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => TaskViewModel()),
+        ChangeNotifierProvider(create: (_) => UserViewModel()),
       ],
       child: MaterialApp(
         title: 'Kanban',

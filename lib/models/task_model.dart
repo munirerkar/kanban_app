@@ -6,6 +6,7 @@ class Task {
   final String description;
   final TaskStatus status;
   final String deadline;
+  final List<int> assigneeIds;
 
   Task({
     this.id,
@@ -13,17 +14,31 @@ class Task {
     required this.description,
     required this.status,
     required this.deadline,
+    this.assigneeIds = const [],
   });
 
   factory Task.fromJson(Map<String, dynamic> json) {
+    var assigneeData = json['assignees'];
+    List<int> safeIds = [];
+
+    if (assigneeData is List) {
+      // Eğer gelen veri gerçekten bir listeyse işle
+      safeIds = assigneeData.map((item) {
+        if (item is Map) {
+          return item['id'] as int?;
+        } else if (item is int) {
+          return item;
+        }
+        return null;
+      }).whereType<int>().toList();
+    }
     return Task(
       id: json['id'],
       title: json['title'] ?? '',
       description: json['description'] ?? '',
-
       status: stringToTaskStatus(json['status']),
-
       deadline: json['deadline'] ?? '',
+      assigneeIds: safeIds,
     );
   }
 
@@ -31,10 +46,9 @@ class Task {
     return {
       'title': title,
       'description': description,
-
       'status': status.toShortString,
-
       'deadline': deadline,
+      'assigneeIds': assigneeIds,
     };
   }
 }

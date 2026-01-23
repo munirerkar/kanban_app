@@ -34,7 +34,7 @@ class TaskViewModel extends ChangeNotifier {
   }
 
   // Yeni Görev Ekle
-  Future<void> addTask(String title, String description, String deadline, TaskStatus status) async {
+  Future<void> addTask(String title, String description, String deadline, TaskStatus status, List<int> assigneeIds) async {
     _setLoading(true);
     try {
       final newTask = Task(
@@ -42,6 +42,7 @@ class TaskViewModel extends ChangeNotifier {
         description: description,
         deadline: deadline,
         status: status,
+        assigneeIds: assigneeIds,
       );
       final createdTask = await _taskService.createTask(newTask);
       _tasks.add(createdTask);
