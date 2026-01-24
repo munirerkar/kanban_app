@@ -248,114 +248,166 @@ class TaskColumn extends StatelessWidget {
               final taskAssignees = allUsers
                   .where((user) => task.assigneeIds.contains(user.id))
                   .toList();
+              return Dismissible(
+                  key: Key(task.id.toString()), // Her kartın benzersiz anahtarı
+                  direction: DismissDirection.horizontal, // Hem sağa hem sola izin ver
 
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.08),
-                      spreadRadius: 2,
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+                  // --- ARKAPLAN TASARIMLARI ---
+                  // Sola Kaydırınca (Geri Gitme Rengi - Turuncu/Kırmızı)
+                  background: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(left: 20),
+                    alignment: Alignment.centerLeft,
+                    decoration: BoxDecoration(
+                      color: Colors.orange[300],
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Başlık
-                    Text(
-                      task.title,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
+                    child: const Icon(Icons.undo, color: Colors.white, size: 30),
+                  ),
+
+                  // Sağa Kaydırınca (İleri Gitme Rengi - Yeşil)
+                  secondaryBackground: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(right: 20),
+                    alignment: Alignment.centerRight,
+                    decoration: BoxDecoration(
+                      color: Colors.green[300],
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    const SizedBox(height: 6),
+                    child: const Icon(Icons.arrow_forward, color: Colors.white, size: 30),
+                  ),
 
-                    // Açıklama
-                    Text(
-                      task.description,
-                      maxLines: 4,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
-                    ),
-                    const SizedBox(height: 12),
+                  // --- MANTIK KISMI ---
+                  confirmDismiss: (direction) async {
+                    TaskStatus? newStatus;
 
-                    // Alt Satır: Avatar ve Tarih
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        taskAssignees.isEmpty
-                            ? Icon(Icons.person_off_outlined, size: 18, color: Colors.grey[300])
-                            : SizedBox(
-                          height: 24, // Avatar satırının yüksekliği
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            shrinkWrap: true, // Sadece içeriği kadar yer kapla
-                            itemCount: taskAssignees.length > 3 ? 4 : taskAssignees.length, // Max 3 kişi + (+1) göster
-                            itemBuilder: (context, userIndex) {
-                              // Eğer 3'ten fazla kişi varsa 4. balonda "+2" gibi sayı göster
-                              if (userIndex == 3) {
-                                return CircleAvatar(
-                                  radius: 12,
-                                  backgroundColor: Colors.grey[300],
-                                  child: Text(
-                                    "+${taskAssignees.length - 3}",
-                                    style: const TextStyle(fontSize: 10, color: Colors.black54, fontWeight: FontWeight.bold),
-                                  ),
-                                );
-                              }
+                    // Yön Kontrolü: Hangi statüdeyiz, nereye gidiyoruz?
+                    if (direction == DismissDirection.endToStart) {
+                      // SAĞA KAYDIRMA (İLERİ GİT) ->
+                      if (task.status == TaskStatus.BACKLOG) newStatus = TaskStatus.TODO;
+                      else if (task.status == TaskStatus.TODO) newStatus = TaskStatus.IN_PROGRESS;
+                      else if (task.status == TaskStatus.IN_PROGRESS) newStatus = TaskStatus.DONE;
+                    } else {
+                      // SOLA KAYDIRMA (GERİ GİT) <-
+                      if (task.status == TaskStatus.DONE) newStatus = TaskStatus.IN_PROGRESS;
+                      else if (task.status == TaskStatus.IN_PROGRESS) newStatus = TaskStatus.TODO;
+                      else if (task.status == TaskStatus.TODO) newStatus = TaskStatus.BACKLOG;
+                    }
 
-                              final user = taskAssignees[userIndex];
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 4.0), // Avatarlar arası boşluk
-                                child: CircleAvatar(
-                                  radius: 12,
-                                  backgroundColor: Colors.grey[200],
-                                  backgroundImage: (user.profilePictureUrl != null && user.profilePictureUrl!.isNotEmpty)
-                                      ? NetworkImage(user.profilePictureUrl!)
-                                      : null,
-                                  child: (user.profilePictureUrl == null || user.profilePictureUrl!.isEmpty)
-                                      ? const Icon(Icons.person, size: 14, color: Colors.grey)
-                                      : null,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-
-                        // Tarih Kutucuğu
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.calendar_month_outlined, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                              const SizedBox(width: 6),
-                              Text(
-                                formattedDate,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
+                    if (newStatus != null) {
+                      context.read<TaskViewModel>().updateStatus(task, newStatus);
+                      return false;
+                    }
+                    return false; // Değişiklik yoksa bir şey yapma
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.08),
+                          spreadRadius: 2,
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                  ],
-                ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Başlık
+                        Text(
+                          task.title,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+
+                        // Açıklama
+                        Text(
+                          task.description,
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Alt Satır: Avatar ve Tarih
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            taskAssignees.isEmpty
+                                ? Icon(Icons.person_off_outlined, size: 18, color: Colors.grey[300])
+                                : SizedBox(
+                              height: 24, // Avatar satırının yüksekliği
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                shrinkWrap: true, // Sadece içeriği kadar yer kapla
+                                itemCount: taskAssignees.length > 3 ? 4 : taskAssignees.length, // Max 3 kişi + (+1) göster
+                                itemBuilder: (context, userIndex) {
+                                  // Eğer 3'ten fazla kişi varsa 4. balonda "+2" gibi sayı göster
+                                  if (userIndex == 3) {
+                                    return CircleAvatar(
+                                      radius: 12,
+                                      backgroundColor: Colors.grey[300],
+                                      child: Text(
+                                        "+${taskAssignees.length - 3}",
+                                        style: const TextStyle(fontSize: 10, color: Colors.black54, fontWeight: FontWeight.bold),
+                                      ),
+                                    );
+                                  }
+
+                                  final user = taskAssignees[userIndex];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 4.0), // Avatarlar arası boşluk
+                                    child: CircleAvatar(
+                                      radius: 12,
+                                      backgroundColor: Colors.grey[200],
+                                      backgroundImage: (user.profilePictureUrl != null && user.profilePictureUrl!.isNotEmpty)
+                                          ? NetworkImage(user.profilePictureUrl!)
+                                          : null,
+                                      child: (user.profilePictureUrl == null || user.profilePictureUrl!.isEmpty)
+                                          ? const Icon(Icons.person, size: 14, color: Colors.grey)
+                                          : null,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+
+                            // Tarih Kutucuğu
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.calendar_month_outlined, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    formattedDate,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  )
               );
             },
         );

@@ -58,4 +58,29 @@ class TaskViewModel extends ChangeNotifier {
     _isLoading = value;
     notifyListeners();
   }
+
+  // Görev güncelle
+  Future<void> updateStatus(Task task, TaskStatus newStatus) async {
+    // 1. Önce arayüzü hemen güncelle (Kullanıcı beklemesin - Optimistic Update)
+    final oldStatus = task.status;
+
+    // Listeden eski halini bul ve güncelle (Local Update)
+    final taskIndex = _tasks.indexWhere((t) => t.id == task.id);
+    if (taskIndex != -1) {
+      _tasks[taskIndex] = task.copyWith(status: newStatus);
+      notifyListeners();
+    }
+
+    // 2. Backend'e isteği gönder
+    try {
+      await _taskService.updateTaskStatus(task.id!, newStatus);
+    } catch (e) {
+      // Hata olursa değişikliği geri al!
+      if (taskIndex != -1) {
+        _tasks[taskIndex] = task.copyWith(status: oldStatus);
+        _errorMessage = "Güncelleme başarısız, geri alındı.";
+        notifyListeners();
+      }
+    }
+  }
 }

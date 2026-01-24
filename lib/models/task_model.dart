@@ -51,4 +51,21 @@ class Task {
       'assigneeIds': assigneeIds,
     };
   }
+  Task copyWith({
+    int? id,
+    String? title,
+    String? description,
+    TaskStatus? status,
+    String? deadline,
+    List<int>? assigneeIds,
+  }) {
+    return Task(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      status: status ?? this.status,
+      deadline: deadline ?? this.deadline,
+      assigneeIds: assigneeIds ?? this.assigneeIds,
+    );
+  }
 }
