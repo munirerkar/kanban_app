@@ -59,7 +59,7 @@ class TaskViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Görev güncelle
+  // Görev durumu güncelle
   Future<void> updateStatus(Task task, TaskStatus newStatus) async {
     // 1. Önce arayüzü hemen güncelle (Kullanıcı beklemesin - Optimistic Update)
     final oldStatus = task.status;
@@ -82,5 +82,105 @@ class TaskViewModel extends ChangeNotifier {
         notifyListeners();
       }
     }
+  }
+
+  // Görev güncelleme
+  Future<void> updateTaskFull(Task task) async {
+    _setLoading(true);
+    try {
+      final updatedTask = await _taskService.updateTask(task);
+
+      // Listeden eskini bul, yenisiyle değiştir
+      final index = _tasks.indexWhere((t) => t.id == task.id);
+      if (index != -1) {
+        _tasks[index] = updatedTask;
+        notifyListeners();
+      }
+    } catch (e) {
+      _errorMessage = "Güncelleme başarısız: $e";
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Görev silme
+  Future<void> deleteTask(int id) async {
+    _setLoading(true);
+    try {
+      await _taskService.deleteTask(id);
+
+      // Listeden sil
+      _tasks.removeWhere((t) => t.id == id);
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = "Silme başarısız: $e";
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // --- ÇOKLU SEÇİM (MULTI-SELECT) LOGIC ---
+
+  final Set<int> _selectedTaskIds = {}; // Seçilenlerin ID listesi
+  bool _isSelectionMode = false; // Seçim modu açık mı?
+
+  bool get isSelectionMode => _isSelectionMode;
+  Set<int> get selectedTaskIds => _selectedTaskIds;
+
+  // Seçim modunu başlat/bitir
+  void toggleSelectionMode(bool active) {
+    _isSelectionMode = active;
+    if (!active) _selectedTaskIds.clear(); // Mod kapanırsa seçimleri temizle
+    notifyListeners();
+  }
+
+  // Bir karta tıklandığında seç/kaldır
+  void toggleTaskSelection(int taskId) {
+    if (_selectedTaskIds.contains(taskId)) {
+      _selectedTaskIds.remove(taskId);
+      if (_selectedTaskIds.isEmpty) {
+        _isSelectionMode = false; // Sonuncuyu da kaldırdıysa moddan çık
+      }
+    } else {
+      _selectedTaskIds.add(taskId);
+    }
+    notifyListeners();
+  }
+
+  // Seçilenlerin hepsini sil
+  Future<void> deleteSelectedTasks() async {
+    _setLoading(true);
+    try {
+      // Backend'e tek tek silme isteği at (Veya backend'de toplu silme varsa o kullanılır)
+      // Şimdilik döngüyle siliyoruz:
+      for (int id in _selectedTaskIds) {
+        await _taskService.deleteTask(id);
+        _tasks.removeWhere((t) => t.id == id);
+      }
+
+      // Temizlik
+      toggleSelectionMode(false);
+    } catch (e) {
+      _errorMessage = "Toplu silme hatası: $e";
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // --- DETAY GÖRÜNÜMÜ YÖNETİMİ ---
+
+  Task? _openedTask; // Şu an detayları görüntülenen görev (null ise pano açık)
+
+  Task? get openedTask => _openedTask;
+
+  // Görevi aç veya kapat (null gönderilirse kapatır)
+  void setOpenedTask(Task? task) {
+    _openedTask = task;
+    // Eğer detay açılıyorsa seçim modunu kapat, çakışmasın
+    if (task != null) {
+      _isSelectionMode = false;
+      _selectedTaskIds.clear();
+    }
+    notifyListeners();
   }
 }

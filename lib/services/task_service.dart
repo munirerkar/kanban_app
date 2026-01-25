@@ -7,7 +7,7 @@ class TaskService {
 
   final Dio _dio = Dio();
 
-  // Tüm görevleri getir
+  // Tüm görevleri getir (READ)
   Future<List<Task>> getAllTasks() async {
     try {
       final response = await _dio.get(_baseUrl);
@@ -23,7 +23,7 @@ class TaskService {
     }
   }
 
-  // Yeni görev ekle
+  // Yeni görev ekle (ADD)
   Future<Task> createTask(Task task) async {
     try {
       final response = await _dio.post(
@@ -40,7 +40,7 @@ class TaskService {
       throw Exception('Addition error: $e');
     }
   }
-  // Görev durumu güncelle
+  // Görev durumu güncelle (UPDATE)
   Future<void> updateTaskStatus(int taskId, TaskStatus newStatus) async {
     try {
       // Backend'deki PATCH endpoint'ine istek atıyoruz
@@ -50,6 +50,27 @@ class TaskService {
       );
     } catch (e) {
       throw Exception('Status could not be updated: $e');
+    }
+  }
+  // Görev güncelle (UPDATE)
+  Future<Task> updateTask(Task task) async {
+    try {
+      final response = await _dio.put(
+        '$_baseUrl/${task.id}',
+        data: task.toJson(),
+      );
+      return Task.fromJson(response.data);
+    } catch (e) {
+      throw Exception('Güncelleme hatası: $e');
+    }
+  }
+
+  // Görev silme (DELETE)
+  Future<void> deleteTask(int id) async {
+    try {
+      await _dio.delete('$_baseUrl/$id');
+    } catch (e) {
+      throw Exception('Silme hatası: $e');
     }
   }
 }

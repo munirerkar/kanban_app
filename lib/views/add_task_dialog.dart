@@ -85,7 +85,8 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
         padding: const EdgeInsets.all(20.0),
         child: Form(
           key: _formKey,
-          child: Column(
+          child: SingleChildScrollView(
+            child: Column(
             mainAxisSize: MainAxisSize.min, // İçerik kadar yer kapla
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -212,6 +213,7 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
                 ),
               ),
             ],
+          ),
           ),
         ),
       ),
