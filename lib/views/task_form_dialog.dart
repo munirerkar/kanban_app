@@ -1,34 +1,49 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../models/task_model.dart';
 import '../models/task_status.dart';
 import '../viewmodels/task_view_model.dart';
 import '../viewmodels/user_view_model.dart';
 import '../models/user_model.dart';
 
-class AddTaskDialog extends StatefulWidget {
-  const AddTaskDialog({super.key});
+class TaskFormDialog extends StatefulWidget {
+  final Task? taskToEdit;
+  const TaskFormDialog({super.key, this.taskToEdit});
 
   @override
-  State<AddTaskDialog> createState() => _AddTaskDialogState();
+  State<TaskFormDialog> createState() => _TaskFormDialogState();
 }
 
-class _AddTaskDialogState extends State<AddTaskDialog> {
+class _TaskFormDialogState extends State<TaskFormDialog> {
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _descController = TextEditingController();
-  List<int> _selectedUserIds = [];
+  late TextEditingController _titleController;
+  late TextEditingController _descController;
 
+  final List<int> _selectedUserIds = [];
   TaskStatus _selectedStatus = TaskStatus.TODO;
+  DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<UserViewModel>().fetchUsers();
-    });
+    // EĞER DÜZENLEME İSE VERİLERİ DOLDUR
+    if (widget.taskToEdit != null) {
+      final t = widget.taskToEdit!;
+      _titleController = TextEditingController(text: t.title);
+      _descController = TextEditingController(text: t.description);
+      _selectedStatus = t.status;
+      _selectedUserIds.addAll(t.assigneeIds);
+      try {
+        selectedDate = DateTime.parse(t.deadline);
+      } catch (_) {}
+    } else {
+      // EĞER YENİ EKLEME İSE BOŞ BAŞLAT
+      _titleController = TextEditingController();
+      _descController = TextEditingController();
+    }
   }
 
   @override
@@ -41,23 +56,39 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isSaving = true);
-      // TARİHİ OTOMATİK ALIYORUZ (BUGÜN)
-      String formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+      // Artık 'DateTime.now()' değil, seçilen tarihi gönderiyoruz
+      String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
 
       try {
-        await context.read<TaskViewModel>().addTask(
-          _titleController.text,
-          _descController.text,
-          formattedDate,
-          _selectedStatus,
-          _selectedUserIds,
-        );
+        final viewModel = context.read<TaskViewModel>();
+
+        if (widget.taskToEdit != null) {
+          // --- DÜZENLEME MODU (UPDATE) ---
+          final updatedTask = widget.taskToEdit!.copyWith(
+            title: _titleController.text,
+            description: _descController.text,
+            status: _selectedStatus,
+            deadline: formattedDate,
+            assigneeIds: _selectedUserIds,
+          );
+          await viewModel.updateTaskFull(updatedTask);
+        } else {
+          // --- EKLEME MODU (ADD) ---
+          await viewModel.addTask(
+            _titleController.text,
+            _descController.text,
+            formattedDate,
+            _selectedStatus,
+            _selectedUserIds,
+          );
+        }
 
         if (mounted) {
-          Navigator.pop(context); // Pencereyi kapat
+          Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Task created successfully! 🚀'),
+            SnackBar(
+              content: Text(widget.taskToEdit != null ? 'Task updated! ✏️' : 'Task created! 🚀'),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -71,6 +102,17 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
       } finally {
         if (mounted) setState(() => _isSaving = false);
       }
+    }
+  }
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() => selectedDate = picked);
     }
   }
 
@@ -94,9 +136,9 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    "New Task",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    widget.taskToEdit != null ? "Edit Task" : "New Task",
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
@@ -194,9 +236,37 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
                   );
                 },
               ),
+              const SizedBox(height: 12),
+
+              // 5. TARİH SEÇİCİ
+              GestureDetector(
+                onTap: _pickDate,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        // Tarihi Formatla
+                        DateFormat('dd MMMM yyyy').format(selectedDate),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const Icon(Icons.calendar_today, color: Colors.grey),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(height: 24),
 
-              // 5. Save Button
+              // 6. Save Button
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -209,7 +279,10 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
                   ),
                   child: _isSaving
                       ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text("Save", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                      : Text(
+                      widget.taskToEdit != null ? "Save Changes" : "Create Task",
+                      style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)
+                  ),
                 ),
               ),
             ],

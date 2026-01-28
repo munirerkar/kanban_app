@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/task_status.dart';
 import '../viewmodels/task_view_model.dart';
+import '../views/task_form_dialog.dart';
 
 class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
   const KanbanAppBar({super.key});
@@ -145,8 +146,10 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: const Icon(Icons.edit, color: Colors.white),
           onPressed: () {
-            // TODO: Düzenleme dialogu
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Edit mode coming soon!")));
+            showDialog(
+              context: context,
+              builder: (context) => TaskFormDialog(taskToEdit: viewModel.openedTask),
+            );
           },
         )
       ];

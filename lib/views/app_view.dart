@@ -9,7 +9,7 @@ import '../viewmodels/user_view_model.dart';
 import '../widgets/kanban_app_bar.dart';
 import '../widgets/kanban_bottom_bar.dart';
 import '../widgets/task_column.dart';
-import 'add_task_dialog.dart';
+import 'task_form_dialog.dart';
 
 class AppView extends StatefulWidget {
   const AppView({super.key});
@@ -66,7 +66,7 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
               onPressed: () {
                 showDialog(
                   context: context,
-                  builder: (context) => const AddTaskDialog(),
+                  builder: (context) => const TaskFormDialog(),
                 );
               },
               backgroundColor: Theme.of(context).primaryColor,
