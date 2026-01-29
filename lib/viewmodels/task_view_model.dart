@@ -27,7 +27,7 @@ class TaskViewModel extends ChangeNotifier {
     try {
       _tasks = await _taskService.getAllTasks();
     } catch (e) {
-      _errorMessage = "Görevler yüklenirken hata oluştu: $e";
+      _errorMessage = "An error occurred while loading tasks: $e";
     } finally {
       _setLoading(false);
     }
@@ -48,7 +48,7 @@ class TaskViewModel extends ChangeNotifier {
       _tasks.add(createdTask);
       notifyListeners();
     } catch (e) {
-      _errorMessage = "Ekleme başarısız: $e";
+      _errorMessage = "Addition failed: $e";
     } finally {
       _setLoading(false);
     }
@@ -78,7 +78,7 @@ class TaskViewModel extends ChangeNotifier {
       // Hata olursa değişikliği geri al!
       if (taskIndex != -1) {
         _tasks[taskIndex] = task.copyWith(status: oldStatus);
-        _errorMessage = "Güncelleme başarısız, geri alındı.";
+        _errorMessage = "Update failed, rolled back.";
         notifyListeners();
       }
     }
@@ -94,10 +94,13 @@ class TaskViewModel extends ChangeNotifier {
       final index = _tasks.indexWhere((t) => t.id == task.id);
       if (index != -1) {
         _tasks[index] = updatedTask;
-        notifyListeners();
       }
+      if (_openedTask != null && _openedTask!.id == updatedTask.id) {
+        _openedTask = updatedTask;
+      }
+      notifyListeners();
     } catch (e) {
-      _errorMessage = "Güncelleme başarısız: $e";
+      _errorMessage = "Update failed: $e";
     } finally {
       _setLoading(false);
     }
@@ -113,7 +116,7 @@ class TaskViewModel extends ChangeNotifier {
       _tasks.removeWhere((t) => t.id == id);
       notifyListeners();
     } catch (e) {
-      _errorMessage = "Silme başarısız: $e";
+      _errorMessage = "Deletion failed: $e";
     } finally {
       _setLoading(false);
     }
@@ -161,7 +164,7 @@ class TaskViewModel extends ChangeNotifier {
       // Temizlik
       toggleSelectionMode(false);
     } catch (e) {
-      _errorMessage = "Toplu silme hatası: $e";
+      _errorMessage = "Bulk delete error: $e";
     } finally {
       _setLoading(false);
     }
