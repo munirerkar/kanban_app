@@ -39,7 +39,6 @@ class TaskColumn extends StatelessWidget {
     if (taskViewModel.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-
     // HATA VARSA
     if (taskViewModel.errorMessage != null) {
       // Hata ekranını da ListView içine alıyoruz ki "Aşağı Çekilebilsin"
@@ -102,10 +101,31 @@ class TaskColumn extends StatelessWidget {
       );
     }
 
-    return ListView.builder(
+    return ReorderableListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       itemCount: tasks.length,
+      buildDefaultDragHandles: false,
+
+      proxyDecorator: (child, index, animation) {
+        return AnimatedBuilder(
+          animation: animation,
+          builder: (BuildContext context, Widget? child) {
+            return Material(
+              elevation: 8, // Havaya kalkma gölgesi
+              color: Colors.transparent, // Arkaplan şeffaf olsun ki bizim kartın rengi görünsün
+              borderRadius: BorderRadius.circular(16), // KÖŞELERİ YUVARLA
+              child: child,
+            );
+          },
+          child: child,
+        );
+      },
+
+      onReorder: (oldIndex, newIndex) {
+        if (oldIndex < newIndex) newIndex -= 1;
+        taskViewModel.reorderLocalTasks(status, oldIndex, newIndex);
+      },
       itemBuilder: (context, index) {
         final task = tasks[index];
 
@@ -133,7 +153,11 @@ class TaskColumn extends StatelessWidget {
             // Her kartın benzersiz anahtarı
             direction: taskViewModel.isSelectionMode
                 ? DismissDirection.none
-                : DismissDirection.horizontal,
+                : (task.status == TaskStatus.BACKLOG)
+                ? DismissDirection.endToStart // Backlog sadece ileri (sola çekince) gidebilir
+                : (task.status == TaskStatus.DONE)
+                ? DismissDirection.startToEnd // Done sadece geri (sağa çekince) gidebilir
+                : DismissDirection.horizontal, // Diğerleri her iki yöne gidebilir
 
             // --- ARKAPLAN TASARIMLARI ---
             // Sola Kaydırınca (Geri Gitme Rengi - Turuncu/Kırmızı)
@@ -210,7 +234,7 @@ class TaskColumn extends StatelessWidget {
                   duration: const Duration(milliseconds: 300),
                   // Renk değişimi animasyonu
                   margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 5, 16),
                   decoration: BoxDecoration(
                     color: isSelected ? Colors.blue.withOpacity(0.1) : Theme
                         .of(context)
@@ -230,128 +254,159 @@ class TaskColumn extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Stack(
                     children: [
-                      // Başlık
-                      Text(
-                        task.title,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Theme
-                              .of(context)
-                              .colorScheme
-                              .onSurface,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-
-                      // Açıklama
-                      Text(
-                        task.description,
-                        maxLines: 4,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Theme
-                            .of(context)
-                            .colorScheme
-                            .onSurfaceVariant, fontSize: 13),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Alt Satır: Avatar ve Tarih
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          taskAssignees.isEmpty
-                              ? Icon(Icons.person_off_outlined, size: 18,
-                              color: Colors.grey[300])
-                              : SizedBox(
-                            height: 24, // Avatar satırının yüksekliği
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              shrinkWrap: true,
-                              // Sadece içeriği kadar yer kapla
-                              itemCount: taskAssignees.length > 3
-                                  ? 4
-                                  : taskAssignees.length,
-                              // Max 3 kişi + (+1) göster
-                              itemBuilder: (context, userIndex) {
-                                // Eğer 3'ten fazla kişi varsa 4. balonda "+2" gibi sayı göster
-                                if (userIndex == 3) {
-                                  return CircleAvatar(
-                                    radius: 12,
-                                    backgroundColor: Colors.grey[300],
-                                    child: Text(
-                                      "+${taskAssignees.length - 3}",
-                                      style: const TextStyle(fontSize: 10,
-                                          color: Colors.black54,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  );
-                                }
-
-                                final user = taskAssignees[userIndex];
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 4.0),
-                                  // Avatarlar arası boşluk
-                                  child: CircleAvatar(
-                                    radius: 12,
-                                    backgroundColor: Colors.grey[200],
-                                    backgroundImage: (user.profilePictureUrl !=
-                                        null &&
-                                        user.profilePictureUrl!.isNotEmpty)
-                                        ? NetworkImage(user.profilePictureUrl!)
-                                        : null,
-                                    child: (user.profilePictureUrl == null ||
-                                        user.profilePictureUrl!.isEmpty)
-                                        ? const Icon(Icons.person, size: 14,
-                                        color: Colors.grey)
-                                        : null,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-
-                          // Tarih Kutucuğu
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: Theme
-                                  .of(context)
-                                  .colorScheme
-                                  .surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.calendar_month_outlined, size: 14,
-                                    color: Theme
-                                        .of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant),
-                                const SizedBox(width: 6),
-                                Text(
-                                  formattedDate,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Theme
-                                        .of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Başlık
+                            Padding(
+                              padding: const EdgeInsets.only(right: 32.0),
+                              child: Text(
+                                task.title,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Theme
+                                      .of(context)
+                                      .colorScheme
+                                      .onSurface,
                                 ),
-                              ],
+                              ),
                             ),
+                            const SizedBox(height: 6),
+
+                            // Açıklama
+                            Padding(
+                              padding: const EdgeInsets.only(right: 32.0),
+                              child: Text(
+                                task.description,
+                                maxLines: 4,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: Theme
+                                    .of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant, fontSize: 13),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            // Alt Satır: Avatar ve Tarih
+                            Padding(
+                              padding: const EdgeInsets.only(right: 5.0), // Standart kenar boşluğu
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  taskAssignees.isEmpty
+                                      ? Icon(Icons.person_off_outlined, size: 18,
+                                      color: Colors.grey[300])
+                                      : SizedBox(
+                                    height: 24, // Avatar satırının yüksekliği
+                                    child: ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      shrinkWrap: true,
+                                      // Sadece içeriği kadar yer kapla
+                                      itemCount: taskAssignees.length > 3
+                                          ? 4
+                                          : taskAssignees.length,
+                                      // Max 3 kişi + (+1) göster
+                                      itemBuilder: (context, userIndex) {
+                                        // Eğer 3'ten fazla kişi varsa 4. balonda "+2" gibi sayı göster
+                                        if (userIndex == 3) {
+                                          return CircleAvatar(
+                                            radius: 12,
+                                            backgroundColor: Colors.grey[300],
+                                            child: Text(
+                                              "+${taskAssignees.length - 3}",
+                                              style: const TextStyle(fontSize: 10,
+                                                  color: Colors.black54,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                          );
+                                        }
+
+                                        final user = taskAssignees[userIndex];
+                                        return Padding(
+                                          padding: const EdgeInsets.only(right: 4.0),
+                                          // Avatarlar arası boşluk
+                                          child: CircleAvatar(
+                                            radius: 12,
+                                            backgroundColor: Colors.grey[200],
+                                            backgroundImage: (user.profilePictureUrl !=
+                                                null &&
+                                                user.profilePictureUrl!.isNotEmpty)
+                                                ? NetworkImage(user.profilePictureUrl!)
+                                                : null,
+                                            child: (user.profilePictureUrl == null ||
+                                                user.profilePictureUrl!.isEmpty)
+                                                ? const Icon(Icons.person, size: 14,
+                                                color: Colors.grey)
+                                                : null,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  // Tarih Kutucuğu
+                                  Flexible(
+                                    child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: Theme
+                                          .of(context)
+                                          .colorScheme
+                                          .surfaceContainerHighest,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.calendar_month_outlined, size: 14,
+                                            color: Theme
+                                                .of(context)
+                                                .colorScheme
+                                                .onSurfaceVariant),
+                                        const SizedBox(width: 6),
+                                        Flexible(child: Text(
+                                          formattedDate,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: Theme
+                                                .of(context)
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      // TUTAÇ (DRAG HANDLE)
+                      Positioned(
+                        top: -10,
+                        right: 0,
+                        child: ReorderableDragStartListener(
+                          index: index,
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            color: Colors.transparent,
+                            child: Icon(Icons.drag_indicator, color: Colors.grey[300], size: 20),
                           ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
-                )
+                ),
             )
         );
       },

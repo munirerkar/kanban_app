@@ -186,4 +186,26 @@ class TaskViewModel extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  void reorderLocalTasks(TaskStatus status, int oldIndex, int newIndex) {
+    // O statüdeki görevlerin gerçek listesini bul
+    final tasksInStatus = _tasks.where((t) => t.status == status).toList();
+
+    // Taşınan görevi al
+    final taskToMove = tasksInStatus[oldIndex];
+
+    _tasks.remove(taskToMove); // Listeden sök
+
+    // Listeyi statüye göre ayırıp tekrar birleştiriyoruz
+    tasksInStatus.removeAt(oldIndex);
+    tasksInStatus.insert(newIndex, taskToMove);
+
+    // Diğer statüdeki görevler
+    final otherTasks = _tasks.where((t) => t.status != status).toList();
+
+    // Listeyi yeniden oluştur
+    _tasks = [...tasksInStatus, ...otherTasks];
+
+    notifyListeners();
+  }
 }
