@@ -40,7 +40,25 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
         builder: (context, taskViewModel, child) {
           final bool isDetailOpen = taskViewModel.openedTask != null;
 
-          return Scaffold(
+          return PopScope(
+            canPop: false,
+
+            // Geri tuşuna basılınca burası çalışır
+            onPopInvokedWithResult: (didPop, result) {
+              if (didPop) return; // Zaten işlem yapıldıysa karışma
+
+              // 1. DURUM: Detay sayfası açıksa
+              if (taskViewModel.openedTask != null) {
+                // Detay görünümünü kapat (Panoya geri dön)
+                taskViewModel.setOpenedTask(null);
+              }
+              // 2. DURUM: Detay kapalıysa (Ana ekrandaysa)
+              else {
+                // Hiçbir şey yapma (Uygulama kapanmaz)
+              }
+            },
+
+            child: Scaffold(
             // APPBAR
             appBar: const KanbanAppBar(),
 
@@ -74,7 +92,8 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
               child: const Icon(Icons.add, color: Colors.white),
             ),
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-          );
+          ),);
+
         },
       ),
     );
