@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kanban_project/views/task_detail_view.dart';
 import 'package:provider/provider.dart';
 import '../models/task_status.dart';
-import '../models/user_model.dart';
 import '../viewmodels/task_view_model.dart';
-import 'package:intl/intl.dart';
 import '../viewmodels/user_view_model.dart';
 import '../widgets/kanban_app_bar.dart';
 import '../widgets/kanban_bottom_bar.dart';
@@ -27,7 +25,7 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
 
     // Verileri çek
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TaskViewModel>().fetchTasks();
+      context.read<TaskViewModel>().fetchTasks(context);
       context.read<UserViewModel>().fetchUsers();
     });
   }

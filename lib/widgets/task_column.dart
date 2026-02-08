@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../l10n/app_localizations.dart';
 import '../models/task_model.dart';
 import '../models/task_status.dart';
 import '../viewmodels/task_view_model.dart';
@@ -21,7 +22,7 @@ class TaskColumn extends StatelessWidget {
         return RefreshIndicator(
           onRefresh: () async {
             // Aşağı çekince Backend'den verileri tekrar çek
-            await taskViewModel.fetchTasks();
+            await taskViewModel.fetchTasks(context);
           },
           // Renk ayarı (Opsiyonel)
           color: Theme
@@ -35,6 +36,7 @@ class TaskColumn extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context, TaskViewModel taskViewModel, UserViewModel userViewModel,List<Task> tasks) {
+    final l10n = AppLocalizations.of(context)!;
     // Yükleniyorsa
     if (taskViewModel.isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -57,7 +59,7 @@ class TaskColumn extends StatelessWidget {
                 const Icon(Icons.error_outline, size: 48, color: Colors.red),
                 const SizedBox(height: 10),
                 Text(
-                  "Connection Error!",
+                  l10n.taskColumnConnectionError,
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 16),
                 ),
@@ -91,7 +93,7 @@ class TaskColumn extends StatelessWidget {
                     color: Colors.grey[300]),
                 const SizedBox(height: 10),
                 Text(
-                  "No tasks in ${status.name}",
+                  l10n.taskColumnNoTasks(status.name),
                   style: TextStyle(color: Colors.grey[500]),
                 ),
               ],
@@ -209,7 +211,7 @@ class TaskColumn extends StatelessWidget {
               }
 
               if (newStatus != null) {
-                context.read<TaskViewModel>().updateStatus(task, newStatus);
+                context.read<TaskViewModel>().updateStatus(context, task, newStatus);
                 return false;
               }
               return false; // Değişiklik yoksa bir şey yapma

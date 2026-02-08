@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/task_model.dart';
 import '../models/task_status.dart';
 import '../services/task_service.dart';
+import '../l10n/app_localizations.dart';
+
 
 class TaskViewModel extends ChangeNotifier {
   final TaskService _taskService = TaskService();
@@ -20,21 +22,23 @@ class TaskViewModel extends ChangeNotifier {
   }
 
   // Backend'den Verileri Çek
-  Future<void> fetchTasks() async {
+  Future<void> fetchTasks(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     _setLoading(true);
     _errorMessage = null;
 
     try {
       _tasks = await _taskService.getAllTasks();
     } catch (e) {
-      _errorMessage = "An error occurred while loading tasks: $e";
+      _errorMessage = l10n.viewModelAnErrorOccurredWhileLoadingTasks(e.toString());
     } finally {
       _setLoading(false);
     }
   }
 
   // Yeni Görev Ekle
-  Future<void> addTask(String title, String description, String deadline, TaskStatus status, List<int> assigneeIds) async {
+  Future<void> addTask(BuildContext context, String title, String description, String deadline, TaskStatus status, List<int> assigneeIds) async {
+    final l10n = AppLocalizations.of(context)!;
     _setLoading(true);
     try {
       final newTask = Task(
@@ -48,7 +52,7 @@ class TaskViewModel extends ChangeNotifier {
       _tasks.add(createdTask);
       notifyListeners();
     } catch (e) {
-      _errorMessage = "Addition failed: $e";
+      _errorMessage = l10n.viewModelAdditionFailed(e.toString());
     } finally {
       _setLoading(false);
     }
@@ -60,7 +64,8 @@ class TaskViewModel extends ChangeNotifier {
   }
 
   // Görev durumu güncelle
-  Future<void> updateStatus(Task task, TaskStatus newStatus) async {
+  Future<void> updateStatus(BuildContext context, Task task, TaskStatus newStatus) async {
+    final l10n = AppLocalizations.of(context)!;
     // 1. Önce arayüzü hemen güncelle (Kullanıcı beklemesin - Optimistic Update)
     final oldStatus = task.status;
 
@@ -78,14 +83,15 @@ class TaskViewModel extends ChangeNotifier {
       // Hata olursa değişikliği geri al!
       if (taskIndex != -1) {
         _tasks[taskIndex] = task.copyWith(status: oldStatus);
-        _errorMessage = "Update failed, rolled back.";
+        _errorMessage = l10n.viewModelUpdateFailedRolledBack;
         notifyListeners();
       }
     }
   }
 
   // Görev güncelleme
-  Future<void> updateTaskFull(Task task) async {
+  Future<void> updateTaskFull(BuildContext context, Task task) async {
+    final l10n = AppLocalizations.of(context)!;
     _setLoading(true);
     try {
       final updatedTask = await _taskService.updateTask(task);
@@ -100,14 +106,15 @@ class TaskViewModel extends ChangeNotifier {
       }
       notifyListeners();
     } catch (e) {
-      _errorMessage = "Update failed: $e";
+      _errorMessage = l10n.viewModelUpdateFailed(e.toString());
     } finally {
       _setLoading(false);
     }
   }
 
   // Görev silme
-  Future<void> deleteTask(int id) async {
+  Future<void> deleteTask(BuildContext context, int id) async {
+    final l10n = AppLocalizations.of(context)!;
     _setLoading(true);
     try {
       await _taskService.deleteTask(id);
@@ -116,7 +123,7 @@ class TaskViewModel extends ChangeNotifier {
       _tasks.removeWhere((t) => t.id == id);
       notifyListeners();
     } catch (e) {
-      _errorMessage = "Deletion failed: $e";
+      _errorMessage = l10n.viewModelDeletionFailed(e.toString());
     } finally {
       _setLoading(false);
     }
@@ -151,7 +158,8 @@ class TaskViewModel extends ChangeNotifier {
   }
 
   // Seçilenlerin hepsini sil
-  Future<void> deleteSelectedTasks() async {
+  Future<void> deleteSelectedTasks(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     _setLoading(true);
     try {
       // Backend'e tek tek silme isteği at (Veya backend'de toplu silme varsa o kullanılır)
@@ -164,7 +172,7 @@ class TaskViewModel extends ChangeNotifier {
       // Temizlik
       toggleSelectionMode(false);
     } catch (e) {
-      _errorMessage = "Bulk delete error: $e";
+      _errorMessage = l10n.viewModelBulkDeleteError(e.toString());
     } finally {
       _setLoading(false);
     }

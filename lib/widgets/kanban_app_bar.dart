@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../models/task_status.dart';
 import '../viewmodels/task_view_model.dart';
 import '../views/task_form_dialog.dart';
@@ -16,6 +17,7 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
     final taskViewModel = context.watch<TaskViewModel>();
     final bool isDetailOpen = taskViewModel.openedTask != null;
     final bool isSelectionMode = taskViewModel.isSelectionMode;
+    final l10n = AppLocalizations.of(context)!;
 
     return AppBar(
       // RENK AYARI
@@ -25,7 +27,7 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: _buildLeading(context, taskViewModel, isDetailOpen, isSelectionMode),
 
       // BAŞLIK (Title)
-      title: _buildTitle(taskViewModel, isDetailOpen, isSelectionMode),
+      title: _buildTitle(context, taskViewModel, isDetailOpen, isSelectionMode),
 
       // SAĞDAKİ BUTONLAR (Actions)
       actions: _buildActions(context, taskViewModel, isDetailOpen, isSelectionMode),
@@ -45,10 +47,10 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
         unselectedLabelColor: Colors.white70,
         labelStyle: const TextStyle(fontWeight: FontWeight.bold),
         tabs: [
-          _buildTabItem("Backlog", taskViewModel.getTasksByStatus(TaskStatus.BACKLOG).length),
-          _buildTabItem("To Do", taskViewModel.getTasksByStatus(TaskStatus.TODO).length),
-          _buildTabItem("Progress", taskViewModel.getTasksByStatus(TaskStatus.IN_PROGRESS).length),
-          _buildTabItem("Done", taskViewModel.getTasksByStatus(TaskStatus.DONE).length),
+          _buildTabItem(l10n.appBarBacklog, taskViewModel.getTasksByStatus(TaskStatus.BACKLOG).length),
+          _buildTabItem(l10n.appBarToDo, taskViewModel.getTasksByStatus(TaskStatus.TODO).length),
+          _buildTabItem(l10n.appBarInProgress, taskViewModel.getTasksByStatus(TaskStatus.IN_PROGRESS).length),
+          _buildTabItem(l10n.appBarDone, taskViewModel.getTasksByStatus(TaskStatus.DONE).length),
         ],
       ),
     );
@@ -112,11 +114,12 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
     return null; // Normal modda bir şey yok (varsa logo koyabilirsin)
   }
 
-  Widget _buildTitle(TaskViewModel viewModel, bool isDetail, bool isSelection) {
+  Widget _buildTitle(BuildContext context, TaskViewModel viewModel, bool isDetail, bool isSelection) {
+    final l10n = AppLocalizations.of(context)!;
     if (isDetail) {
-      return const Text("Task Details", style: TextStyle(color: Colors.white));
+      return Text(l10n.appBarTaskDetails, style: const TextStyle(color: Colors.white));
     } else if (isSelection) {
-      return Text("${viewModel.selectedTaskIds.length} Selected", style: const TextStyle(color: Colors.white));
+      return Text(l10n.appBarNSelected(viewModel.selectedTaskIds.length), style: const TextStyle(color: Colors.white));
     } else {
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -140,6 +143,7 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   List<Widget> _buildActions(BuildContext context, TaskViewModel viewModel, bool isDetail, bool isSelection) {
+    final l10n = AppLocalizations.of(context)!;
     if (isDetail) {
       // Detay modunda: DÜZENLE (Edit) butonu
       return [
@@ -160,15 +164,15 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
           icon: const Icon(Icons.delete_outline, color: Colors.white),
           onPressed: () async {
             // Emin misin sorusu ve silme işlemi
-            await viewModel.deleteSelectedTasks();
+            await viewModel.deleteSelectedTasks(context);
           },
         )
       ];
     } else {
       // Normal modda: Arama ve Ayarlar
       return [
-        IconButton(icon: const Icon(Icons.search, color: Colors.white), onPressed: () {ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Search mode coming soon!")));}),
-        IconButton(icon: const Icon(Icons.settings, color: Colors.white), onPressed: () {ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Settings mode coming soon!")));}),
+        IconButton(icon: const Icon(Icons.search, color: Colors.white), onPressed: () {ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.searchComingSoon)));}),
+        IconButton(icon: const Icon(Icons.settings, color: Colors.white), onPressed: () {ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.settingsComingSoon)));}),
       ];
     }
   }

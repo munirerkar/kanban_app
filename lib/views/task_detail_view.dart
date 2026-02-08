@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../models/task_model.dart';
 import '../viewmodels/user_view_model.dart';
 
@@ -11,6 +12,7 @@ class TaskDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     // Tarih Formatlama
     String formattedDate = task.deadline;
     try {
@@ -62,7 +64,7 @@ class TaskDetailView extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Açıklama
-          const Text("Description", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(l10n.taskDetailDescription, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
@@ -77,7 +79,7 @@ class TaskDetailView extends StatelessWidget {
 
           // Kişiler
           if (assignees.isNotEmpty) ...[
-            const Text("Assignees", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(l10n.taskDetailAssignees, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,

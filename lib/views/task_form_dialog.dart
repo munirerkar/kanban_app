@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../models/task_model.dart';
 import '../models/task_status.dart';
 import '../viewmodels/task_view_model.dart';
@@ -23,7 +24,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
 
   final List<int> _selectedUserIds = [];
   TaskStatus _selectedStatus = TaskStatus.TODO;
-  DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
+  DateTime? selectedDate;
   bool _isSaving = false;
 
   @override
@@ -54,11 +55,12 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_formKey.currentState!.validate()) {
       setState(() => _isSaving = true);
 
       // Artık 'DateTime.now()' değil, seçilen tarihi gönderiyoruz
-      String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+      String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate!);
 
       try {
         final viewModel = context.read<TaskViewModel>();
@@ -72,10 +74,11 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
             deadline: formattedDate,
             assigneeIds: _selectedUserIds,
           );
-          await viewModel.updateTaskFull(updatedTask);
+          await viewModel.updateTaskFull(context, updatedTask);
         } else {
           // --- EKLEME MODU (ADD) ---
           await viewModel.addTask(
+            context,
             _titleController.text,
             _descController.text,
             formattedDate,
@@ -88,7 +91,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(widget.taskToEdit != null ? 'Task updated! ✏️' : 'Task created! 🚀'),
+              content: Text(widget.taskToEdit != null ? l10n.formTaskUpdatedSuccess : l10n.formTaskCreatedSuccess),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -96,7 +99,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+            SnackBar(content: Text(l10n.formError(e.toString())), backgroundColor: Colors.red),
           );
         }
       } finally {
@@ -104,20 +107,10 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
       }
     }
   }
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      setState(() => selectedDate = picked);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     // Dialog Widget'ı ekranın ortasında pencere açar
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -137,7 +130,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    widget.taskToEdit != null ? "Edit Task" : "New Task",
+                    widget.taskToEdit != null ? l10n.formEditTaskTitle : l10n.formNewTaskTitle,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   GestureDetector(
@@ -151,15 +144,17 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
               // 1. Title Input
               _buildFigmaInput(
                 controller: _titleController,
-                hint: "Title",
+                hint: l10n.formTitleHint,
+                l10n: l10n
               ),
               const SizedBox(height: 12),
 
               // 2. Description Input
               _buildFigmaInput(
                 controller: _descController,
-                hint: "Description",
+                hint: l10n.formDescriptionHint,
                 maxLines: 4,
+                l10n: l10n
               ),
               const SizedBox(height: 12),
 
@@ -199,12 +194,12 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                       .map((user) => user.name)
                       .join(", ");
 
-                  if (selectedNames.isEmpty) selectedNames = "Assignees"; // Kimse seçili değilse
+                  if (selectedNames.isEmpty) selectedNames = l10n.formAssigneesHint; // Kimse seçili değilse
 
                   return GestureDetector(
                     onTap: () {
                       // Tıklayınca Seçim Ekranını Aç
-                      _showMultiSelectDialog(context, userViewModel.users);
+                      _showMultiSelectDialog(context, userViewModel.users, l10n);
                     },
                     child: Container(
                       width: double.infinity,
@@ -240,7 +235,22 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
 
               // 5. TARİH SEÇİCİ
               GestureDetector(
-                onTap: _pickDate,
+                onTap: () async {
+                  // Takvimi Aç
+                  final DateTime? picked = await showDatePicker(
+                    context: context,
+                    initialDate: selectedDate ?? DateTime.now(),
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime(2030),
+                  );
+
+                  // Tarih seçildiyse state'i güncelle
+                  if (picked != null && picked != selectedDate) {
+                    setState(() {
+                      selectedDate = picked;
+                    });
+                  }
+                },
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -252,14 +262,19 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        // Tarihi Formatla
-                        DateFormat('dd MMMM yyyy').format(selectedDate),
+                        selectedDate == null
+                            ? l10n.formSelectDeadlineHint // Hiçbir şey seçilmediyse
+                            : DateFormat('dd MMMM yyyy').format(selectedDate!),
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 16,
                         ),
                       ),
-                      const Icon(Icons.calendar_today, color: Colors.grey),
+                      Icon(
+                        Icons.calendar_today_rounded,
+                        color: Colors.grey[500],
+                        size: 20,
+                      ),
                     ],
                   ),
                 ),
@@ -280,7 +295,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                   child: _isSaving
                       ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                       : Text(
-                      widget.taskToEdit != null ? "Save Changes" : "Create Task",
+                      widget.taskToEdit != null ? l10n.formSaveChanges : l10n.formCreateTask,
                       style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)
                   ),
                 ),
@@ -296,12 +311,13 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
   Widget _buildFigmaInput({
     required TextEditingController controller,
     required String hint,
+    required AppLocalizations l10n,
     int maxLines = 1,
   }) {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
-      validator: (value) => value!.isEmpty ? '$hint cannot be empty' : null,
+      validator: (value) => value!.isEmpty ? l10n.formCannotBeEmpty(hint) : null,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
@@ -316,7 +332,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
     );
   }
 
-  void _showMultiSelectDialog(BuildContext context, List<User> users) {
+  void _showMultiSelectDialog(BuildContext context, List<User> users, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (ctx) {
@@ -324,7 +340,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              title: const Text("Select Assignees"),
+              title: Text(l10n.formAssigneesHint),
               content: SizedBox(
                 width: double.maxFinite,
                 child: ListView.builder(
