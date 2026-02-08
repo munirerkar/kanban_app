@@ -15,13 +15,15 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     // ViewModel'i burada dinliyoruz, AppView kirlenmiyor
     final taskViewModel = context.watch<TaskViewModel>();
+    final theme = Theme.of(context);
     final bool isDetailOpen = taskViewModel.openedTask != null;
     final bool isSelectionMode = taskViewModel.isSelectionMode;
     final l10n = AppLocalizations.of(context)!;
 
     return AppBar(
       // RENK AYARI
-      backgroundColor: isSelectionMode ? Colors.grey[900] : Theme.of(context).colorScheme.primary,
+      backgroundColor: isSelectionMode ? Colors.grey[900] : theme.colorScheme.primary,
+      foregroundColor: theme.colorScheme.onPrimary, // AppBar üzerindeki tüm ikon ve metinlerin varsayılan rengi
 
       // SOL TARAFTAKİ BUTON (Leading)
       leading: _buildLeading(context, taskViewModel, isDetailOpen, isSelectionMode),
@@ -42,15 +44,15 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
           }
         },
         isScrollable: false,
-        indicatorColor: Colors.white,
-        labelColor: Colors.white,
-        unselectedLabelColor: Colors.white70,
+        indicatorColor: theme.colorScheme.onPrimary,
+        labelColor: theme.colorScheme.onPrimary,
+        unselectedLabelColor: theme.colorScheme.onPrimary.withOpacity(0.7),
         labelStyle: const TextStyle(fontWeight: FontWeight.bold),
         tabs: [
-          _buildTabItem(l10n.appBarBacklog, taskViewModel.getTasksByStatus(TaskStatus.BACKLOG).length),
-          _buildTabItem(l10n.appBarToDo, taskViewModel.getTasksByStatus(TaskStatus.TODO).length),
-          _buildTabItem(l10n.appBarInProgress, taskViewModel.getTasksByStatus(TaskStatus.IN_PROGRESS).length),
-          _buildTabItem(l10n.appBarDone, taskViewModel.getTasksByStatus(TaskStatus.DONE).length),
+          _buildTabItem(l10n.appBarBacklog, taskViewModel.getTasksByStatus(TaskStatus.BACKLOG).length, theme),
+          _buildTabItem(l10n.appBarToDo, taskViewModel.getTasksByStatus(TaskStatus.TODO).length, theme),
+          _buildTabItem(l10n.appBarInProgress, taskViewModel.getTasksByStatus(TaskStatus.IN_PROGRESS).length, theme),
+          _buildTabItem(l10n.appBarDone, taskViewModel.getTasksByStatus(TaskStatus.DONE).length, theme),
         ],
       ),
     );
@@ -58,7 +60,7 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   // --- YARDIMCI METOTLAR ---
 
-  Widget _buildTabItem(String title, int count) {
+  Widget _buildTabItem(String title, int count, ThemeData theme) {
     return Tab(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -81,14 +83,14 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.25),
+                color: theme.colorScheme.onPrimary.withOpacity(0.25),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 "$count",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 10,
-                  color: Colors.white,
+                  color: theme.colorScheme.onPrimary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -102,24 +104,24 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget? _buildLeading(BuildContext context, TaskViewModel viewModel, bool isDetail, bool isSelection) {
     if (isDetail) {
       return IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        icon: const Icon(Icons.arrow_back), // Renk temadan otomatik gelecek
         onPressed: () => viewModel.setOpenedTask(null), // Detayı kapat
       );
     } else if (isSelection) {
       return IconButton(
-        icon: const Icon(Icons.close, color: Colors.white),
+        icon: const Icon(Icons.close),
         onPressed: () => viewModel.toggleSelectionMode(false), // Seçimi iptal et
       );
     }
-    return null; // Normal modda bir şey yok (varsa logo koyabilirsin)
+    return null;
   }
 
   Widget _buildTitle(BuildContext context, TaskViewModel viewModel, bool isDetail, bool isSelection) {
     final l10n = AppLocalizations.of(context)!;
     if (isDetail) {
-      return Text(l10n.appBarTaskDetails, style: const TextStyle(color: Colors.white));
+      return Text(l10n.appBarTaskDetails);
     } else if (isSelection) {
-      return Text(l10n.appBarNSelected(viewModel.selectedTaskIds.length), style: const TextStyle(color: Colors.white));
+      return Text(l10n.appBarNSelected(viewModel.selectedTaskIds.length));
     } else {
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -130,9 +132,9 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
             width: 60,
             fit: BoxFit.contain,
           ),
-          const Text(
+           Text(
               "KANBAN",
-              style: TextStyle(color: Colors.white,
+              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary,
                 fontWeight: FontWeight.w400,
                 fontSize: 30,
                 letterSpacing: 1.2,)
@@ -148,7 +150,7 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
       // Detay modunda: DÜZENLE (Edit) butonu
       return [
         IconButton(
-          icon: const Icon(Icons.edit, color: Colors.white),
+          icon: const Icon(Icons.edit), // Renk temadan otomatik gelecek
           onPressed: () {
             showDialog(
               context: context,
@@ -161,7 +163,7 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
       // Seçim modunda: ÇÖP KUTUSU (Sil) butonu
       return [
         IconButton(
-          icon: const Icon(Icons.delete_outline, color: Colors.white),
+          icon: const Icon(Icons.delete_outline), // Renk temadan otomatik gelecek
           onPressed: () async {
             // Emin misin sorusu ve silme işlemi
             await viewModel.deleteSelectedTasks(context);
@@ -171,8 +173,8 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
     } else {
       // Normal modda: Arama ve Ayarlar
       return [
-        IconButton(icon: const Icon(Icons.search, color: Colors.white), onPressed: () {ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.searchComingSoon)));}),
-        IconButton(icon: const Icon(Icons.settings, color: Colors.white), onPressed: () {ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.settingsComingSoon)));}),
+        IconButton(icon: const Icon(Icons.search), onPressed: () {ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.searchComingSoon)));}),
+        IconButton(icon: const Icon(Icons.settings), onPressed: () {ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.settingsComingSoon)));}),
       ];
     }
   }

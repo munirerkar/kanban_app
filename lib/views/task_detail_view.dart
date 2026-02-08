@@ -13,6 +13,8 @@ class TaskDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
     // Tarih Formatlama
     String formattedDate = task.deadline;
     try {
@@ -34,20 +36,22 @@ class TaskDetailView extends StatelessWidget {
           // Başlık ve Durum
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Text(
                   task.title,
-                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                  style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
+              const SizedBox(width: 16),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: theme.colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(task.status.name, style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+                child: Text(task.status.name, style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -56,33 +60,34 @@ class TaskDetailView extends StatelessWidget {
           // Tarih
           Row(
             children: [
-              const Icon(Icons.calendar_today_outlined, color: Colors.grey),
+              Icon(Icons.calendar_today_outlined, color: theme.colorScheme.onSurfaceVariant),
               const SizedBox(width: 8),
-              Text(formattedDate, style: const TextStyle(fontSize: 16)),
+              Text(formattedDate, style: theme.textTheme.titleMedium),
             ],
           ),
           const SizedBox(height: 24),
 
           // Açıklama
-          Text(l10n.taskDetailDescription, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(l10n.taskDetailDescription, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(task.description, style: const TextStyle(fontSize: 16, height: 1.5)),
+            child: Text(task.description, style: theme.textTheme.bodyLarge?.copyWith(height: 1.5)),
           ),
           const SizedBox(height: 24),
 
           // Kişiler
           if (assignees.isNotEmpty) ...[
-            Text(l10n.taskDetailAssignees, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(l10n.taskDetailAssignees, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             Wrap(
-              spacing: 8,
+              spacing: 12,
+              runSpacing: 8,
               children: assignees.map((user) => Chip(
                 avatar: CircleAvatar(
                   backgroundImage: (user.profilePictureUrl != null) ? NetworkImage(user.profilePictureUrl!) : null,

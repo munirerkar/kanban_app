@@ -5,9 +5,11 @@ class KanbanBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return BottomAppBar(
-      color: Theme.of(context).primaryColor,
-      surfaceTintColor: Colors.white,
+      color: theme.colorScheme.primary,
+      surfaceTintColor: theme.colorScheme.onSurface,
       elevation: 8.0,
       shape: const CircularNotchedRectangle(),
       height: 60,
@@ -17,7 +19,7 @@ class KanbanBottomBar extends StatelessWidget {
         child: Row(
           children: <Widget>[
             IconButton(
-              icon: const Icon(Icons.home_outlined, color: Colors.white, size: 32),
+              icon: Icon(Icons.home_outlined, color: theme.colorScheme.onPrimary, size: 32),
               onPressed: () {
               },
             ),
@@ -25,10 +27,10 @@ class KanbanBottomBar extends StatelessWidget {
             TextButton(
               onPressed: () {
               },
-              child: const Text(
+              child: Text(
                 'Go to Word Ninja',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: theme.colorScheme.onPrimary,
                   fontWeight: FontWeight.w400,
                   fontSize: 16,
                 ),

@@ -85,9 +85,9 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
                   builder: (context) => const TaskFormDialog(),
                 );
               },
-              backgroundColor: Theme.of(context).primaryColor,
+              backgroundColor: Theme.of(context).colorScheme.primary,
               elevation: 4,
-              child: const Icon(Icons.add, color: Colors.white),
+              child: Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary),
             ),
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           ),);
@@ -97,7 +97,3 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
     );
   }
 }
-
-
-
-
