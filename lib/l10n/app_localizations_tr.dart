@@ -116,4 +116,49 @@ class AppLocalizationsTr extends AppLocalizations {
   String viewModelBulkDeleteError(Object error) {
     return 'Toplu silme hatası: $error';
   }
+
+  @override
+  String get bottomBarGoToWordNinja => 'Word Ninja\'ya Git';
+
+  @override
+  String get settingsTitle => 'Ayarlar';
+
+  @override
+  String get settingsAppearance => 'Görünüm';
+
+  @override
+  String get settingsLanguage => 'Dil';
+
+  @override
+  String get settingsAbout => 'Hakkında';
+
+  @override
+  String get settingsTheme => 'Tema';
+
+  @override
+  String get settingsThemeSystem => 'Sistem';
+
+  @override
+  String get settingsThemeLight => 'Aydınlık';
+
+  @override
+  String get settingsThemeDark => 'Karanlık';
+
+  @override
+  String get settingsLanguageEnglish => 'İngilizce';
+
+  @override
+  String get settingsLanguageTurkish => 'Türkçe';
+
+  @override
+  String get settingsVersion => 'Sürüm';
+
+  @override
+  String get settingsLicenses => 'Lisanslar';
+
+  @override
+  String get buyMeACoffee => 'Bana bir kahve ısmarla ☕';
+
+  @override
+  String get searchHint => 'Görev ara...';
 }

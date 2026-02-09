@@ -277,6 +277,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Bulk delete error: {error}'**
   String viewModelBulkDeleteError(Object error);
+
+  /// No description provided for @bottomBarGoToWordNinja.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Word Ninja'**
+  String get bottomBarGoToWordNinja;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get settingsAppearance;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguage;
+
+  /// No description provided for @settingsAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsAbout;
+
+  /// No description provided for @settingsTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get settingsTheme;
+
+  /// No description provided for @settingsThemeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get settingsThemeSystem;
+
+  /// No description provided for @settingsThemeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get settingsThemeLight;
+
+  /// No description provided for @settingsThemeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get settingsThemeDark;
+
+  /// No description provided for @settingsLanguageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get settingsLanguageEnglish;
+
+  /// No description provided for @settingsLanguageTurkish.
+  ///
+  /// In en, this message translates to:
+  /// **'Turkish'**
+  String get settingsLanguageTurkish;
+
+  /// No description provided for @settingsVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get settingsVersion;
+
+  /// No description provided for @settingsLicenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Licenses'**
+  String get settingsLicenses;
+
+  /// No description provided for @buyMeACoffee.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy me a coffee ☕'**
+  String get buyMeACoffee;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search tasks...'**
+  String get searchHint;
 }
 
 class _AppLocalizationsDelegate

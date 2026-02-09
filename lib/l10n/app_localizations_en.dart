@@ -115,4 +115,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String viewModelBulkDeleteError(Object error) {
     return 'Bulk delete error: $error';
   }
+
+  @override
+  String get bottomBarGoToWordNinja => 'Go to Word Ninja';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsAppearance => 'Appearance';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get settingsAbout => 'About';
+
+  @override
+  String get settingsTheme => 'Theme';
+
+  @override
+  String get settingsThemeSystem => 'System';
+
+  @override
+  String get settingsThemeLight => 'Light';
+
+  @override
+  String get settingsThemeDark => 'Dark';
+
+  @override
+  String get settingsLanguageEnglish => 'English';
+
+  @override
+  String get settingsLanguageTurkish => 'Turkish';
+
+  @override
+  String get settingsVersion => 'Version';
+
+  @override
+  String get settingsLicenses => 'Licenses';
+
+  @override
+  String get buyMeACoffee => 'Buy me a coffee ☕';
+
+  @override
+  String get searchHint => 'Search tasks...';
 }

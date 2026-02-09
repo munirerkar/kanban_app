@@ -37,6 +37,8 @@ class TaskColumn extends StatelessWidget {
 
   Widget _buildBody(BuildContext context, TaskViewModel taskViewModel, UserViewModel userViewModel,List<Task> tasks) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
     // Yükleniyorsa
     if (taskViewModel.isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -56,7 +58,7 @@ class TaskColumn extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
                 const SizedBox(height: 10),
                 Text(
                   l10n.taskColumnConnectionError,
@@ -67,7 +69,7 @@ class TaskColumn extends StatelessWidget {
                 Text(
                   taskViewModel.errorMessage!,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey[600]),
+                  style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
@@ -90,11 +92,11 @@ class TaskColumn extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.assignment_outlined, size: 48,
-                    color: Colors.grey[300]),
+                    color: theme.colorScheme.surfaceContainerHighest),
                 const SizedBox(height: 10),
                 Text(
                   l10n.taskColumnNoTasks(status.name),
-                  style: TextStyle(color: Colors.grey[500]),
+                  style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
@@ -125,6 +127,7 @@ class TaskColumn extends StatelessWidget {
       },
 
       onReorder: (oldIndex, newIndex) {
+        if (taskViewModel.isSearchMode) return; // Arama modunda sıralamaya izin verme
         if (oldIndex < newIndex) newIndex -= 1;
         taskViewModel.reorderLocalTasks(status, oldIndex, newIndex);
       },
@@ -153,8 +156,8 @@ class TaskColumn extends StatelessWidget {
         return Dismissible(
             key: Key(task.id.toString()),
             // Her kartın benzersiz anahtarı
-            direction: taskViewModel.isSelectionMode
-                ? DismissDirection.none
+            direction: (taskViewModel.isSelectionMode || taskViewModel.isSearchMode)
+                ? DismissDirection.none // Arama veya seçim modunda kaydırmayı engelle
                 : (task.status == TaskStatus.BACKLOG)
                 ? DismissDirection.endToStart // Backlog sadece ileri (sola çekince) gidebilir
                 : (task.status == TaskStatus.DONE)
@@ -238,17 +241,13 @@ class TaskColumn extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.fromLTRB(16, 16, 5, 16),
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.blue.withOpacity(0.1) : Theme
-                        .of(context)
-                        .colorScheme
-                        .surface,
-                    border: isSelected ? Border.all(
-                        color: Colors.blue, width: 2) : null,
+                    color: isSelected ? theme.colorScheme.primary.withOpacity(0.1) : theme.colorScheme.surface,
+                    border: isSelected ? Border.all(color: theme.colorScheme.primary, width: 2) : null,
                     // Seçiliyse mavi çerçeve
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: isSelected ? [] : [
                       // Seçiliyse gölgeyi kaldır (düz görünsün)
-                      BoxShadow(color: Colors.grey.withOpacity(0.08),
+                      BoxShadow(color: theme.shadowColor.withOpacity(0.08),
                           spreadRadius: 2,
                           blurRadius: 8,
                           offset: const
@@ -269,15 +268,11 @@ class TaskColumn extends StatelessWidget {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
-                                  color: Theme
-                                      .of(context)
-                                      .colorScheme
-                                      .onSurface,
+                                  color: theme.colorScheme.onSurface,
                                 ),
                               ),
                             ),
                             const SizedBox(height: 6),
-
                             // Açıklama
                             Padding(
                               padding: const EdgeInsets.only(right: 32.0),
@@ -387,25 +382,26 @@ class TaskColumn extends StatelessWidget {
                                       ],
                                     ),
                                   ),
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
                           ],
                         ),
                       // TUTAÇ (DRAG HANDLE)
-                      Positioned(
-                        top: -10,
-                        right: 0,
-                        child: ReorderableDragStartListener(
-                          index: index,
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            color: Colors.transparent,
-                            child: Icon(Icons.drag_indicator, color: Colors.grey[300], size: 20),
+                      if (!taskViewModel.isSearchMode)
+                        Positioned(
+                          top: -10,
+                          right: 0,
+                          child: ReorderableDragStartListener(
+                            index: index,
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              color: Colors.transparent,
+                              child: Icon(Icons.drag_indicator, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5), size: 20),
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),

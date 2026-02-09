@@ -4,7 +4,6 @@ import '../models/task_status.dart';
 import '../services/task_service.dart';
 import '../l10n/app_localizations.dart';
 
-
 class TaskViewModel extends ChangeNotifier {
   final TaskService _taskService = TaskService();
 
@@ -12,13 +11,59 @@ class TaskViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
+  // --- ARAMA DURUMU (SEARCH STATE) ---
+  bool _isSearchMode = false;
+  String _searchQuery = '';
+
+  // --- ÇOKLU SEÇİM (MULTI-SELECT) LOGIC ---
+  final Set<int> _selectedTaskIds = {}; // Seçilenlerin ID listesi
+  bool _isSelectionMode = false; // Seçim modu açık mı?
+
+  // --- GETTERS ---
   List<Task> get tasks => _tasks;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  bool get isSearchMode => _isSearchMode;
+  bool get isSelectionMode => _isSelectionMode;
+  Set<int> get selectedTaskIds => _selectedTaskIds;
 
 
   List<Task> getTasksByStatus(TaskStatus status) {
-    return _tasks.where((task) => task.status == status).toList();
+    // Önce statüye göre filtrele
+    final statusFilteredTasks = _tasks.where((task) => task.status == status).toList();
+
+    // Arama modu aktif değilse veya arama metni boşsa, olduğu gibi döndür
+    if (!_isSearchMode || _searchQuery.isEmpty) {
+      return statusFilteredTasks;
+    }
+
+    // Arama metnine göre başlık ve açıklamada filtrele (case-insensitive)
+    final lowerCaseQuery = _searchQuery.toLowerCase();
+    return statusFilteredTasks.where((task) {
+      final titleMatch = task.title.toLowerCase().contains(lowerCaseQuery);
+      final descriptionMatch = task.description.toLowerCase().contains(lowerCaseQuery);
+      return titleMatch || descriptionMatch;
+    }).toList();
+  }
+
+  // --- ARAMA FONKSİYONLARI (SEARCH FUNCTIONS) ---
+  void toggleSearchMode(bool active) {
+    _isSearchMode = active;
+    if (active) {
+      // Arama modu açıldığında, diğer modları kapat
+      _isSelectionMode = false;
+      _selectedTaskIds.clear();
+    } else {
+      _searchQuery = ''; // Arama modundan çıkınca metni temizle
+    }
+    notifyListeners();
+  }
+
+  void setSearchQuery(String query) {
+    if (_searchQuery != query) {
+      _searchQuery = query;
+      notifyListeners();
+    }
   }
 
   // Backend'den Verileri Çek
@@ -131,16 +176,16 @@ class TaskViewModel extends ChangeNotifier {
 
   // --- ÇOKLU SEÇİM (MULTI-SELECT) LOGIC ---
 
-  final Set<int> _selectedTaskIds = {}; // Seçilenlerin ID listesi
-  bool _isSelectionMode = false; // Seçim modu açık mı?
-
-  bool get isSelectionMode => _isSelectionMode;
-  Set<int> get selectedTaskIds => _selectedTaskIds;
-
   // Seçim modunu başlat/bitir
   void toggleSelectionMode(bool active) {
     _isSelectionMode = active;
-    if (!active) _selectedTaskIds.clear(); // Mod kapanırsa seçimleri temizle
+    if (active) {
+      // Seçim modu açılınca arama modunu kapat
+      _isSearchMode = false;
+      _searchQuery = '';
+    } else {
+      _selectedTaskIds.clear(); // Mod kapanırsa seçimleri temizle
+    }
     notifyListeners();
   }
 
@@ -187,10 +232,12 @@ class TaskViewModel extends ChangeNotifier {
   // Görevi aç veya kapat (null gönderilirse kapatır)
   void setOpenedTask(Task? task) {
     _openedTask = task;
-    // Eğer detay açılıyorsa seçim modunu kapat, çakışmasın
+    // Eğer detay açılıyorsa seçim ve arama modlarını kapat, çakışmasınlar
     if (task != null) {
       _isSelectionMode = false;
       _selectedTaskIds.clear();
+      _isSearchMode = false;
+      _searchQuery = '';
     }
     notifyListeners();
   }

@@ -59,7 +59,15 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isSaving = true);
 
-      // Artık 'DateTime.now()' değil, seçilen tarihi gönderiyoruz
+      if (selectedDate == null) {
+        // Handle case where date is not selected
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.formSelectDeadlineHint), backgroundColor: Colors.red),
+        );
+        return;
+      }
+
       String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate!);
 
       try {
@@ -111,10 +119,11 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     // Dialog Widget'ı ekranın ortasında pencere açar
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: theme.colorScheme.surface,
       insetPadding: const EdgeInsets.all(20), // Kenarlardan boşluk
       child: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -131,30 +140,32 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                 children: [
                   Text(
                     widget.taskToEdit != null ? l10n.formEditTaskTitle : l10n.formNewTaskTitle,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Icon(Icons.close, color: Colors.black54),
+                    child: Icon(Icons.close, color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
 
               // 1. Title Input
-              _buildFigmaInput(
+              _buildTextFormField(
                 controller: _titleController,
                 hint: l10n.formTitleHint,
-                l10n: l10n
+                l10n: l10n,
+                theme: theme
               ),
               const SizedBox(height: 12),
 
               // 2. Description Input
-              _buildFigmaInput(
+              _buildTextFormField(
                 controller: _descController,
                 hint: l10n.formDescriptionHint,
                 maxLines: 4,
-                l10n: l10n
+                l10n: l10n,
+                theme: theme
               ),
               const SizedBox(height: 12),
 
@@ -162,20 +173,20 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<TaskStatus>(
                     value: _selectedStatus,
                     isExpanded: true,
-                    icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+                    icon: Icon(Icons.keyboard_arrow_down, color: theme.colorScheme.onSurfaceVariant),
                     items: TaskStatus.values.map((status) {
                       return DropdownMenuItem(
                         value: status,
                         child: Text(
                           status.name,
-                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
+                          style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 14),
                         ),
                       );
                     }).toList(),
@@ -188,43 +199,31 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
               // 4. Assignee
               Consumer<UserViewModel>(
                 builder: (context, userViewModel, child) {
-                  // Seçilen kişilerin isimlerini bulup virgülle birleştirir (Örn: "Ahmet, Ayşe")
                   String selectedNames = userViewModel.users
                       .where((user) => _selectedUserIds.contains(user.id))
                       .map((user) => user.name)
                       .join(", ");
 
-                  if (selectedNames.isEmpty) selectedNames = l10n.formAssigneesHint; // Kimse seçili değilse
+                  bool isAssigneeHint = selectedNames.isEmpty;
+                  if (isAssigneeHint) selectedNames = l10n.formAssigneesHint;
 
                   return GestureDetector(
-                    onTap: () {
-                      // Tıklayınca Seçim Ekranını Aç
-                      _showMultiSelectDialog(context, userViewModel.users, l10n);
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                    onTap: () => _showMultiSelectDialog(context, userViewModel.users, l10n, theme),
+                    child: _buildDropdownContainer(theme,
                       child: Row(
                         children: [
-                          const Icon(Icons.people_outline, color: Colors.grey),
+                          Icon(Icons.people_outline, color: theme.colorScheme.onSurfaceVariant),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               selectedNames,
-                              style: TextStyle(
-                                color: _selectedUserIds.isEmpty
-                                    ? Colors.grey[600]
-                                    : Theme.of(context).colorScheme.onSurface,
-                                fontSize: 14,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: isAssigneeHint ? theme.colorScheme.onSurfaceVariant : theme.colorScheme.onSurface,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                          Icon(Icons.arrow_drop_down, color: theme.colorScheme.onSurfaceVariant),
                         ],
                       ),
                     ),
@@ -236,28 +235,17 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
               // 5. TARİH SEÇİCİ
               GestureDetector(
                 onTap: () async {
-                  // Takvimi Aç
                   final DateTime? picked = await showDatePicker(
                     context: context,
                     initialDate: selectedDate ?? DateTime.now(),
                     firstDate: DateTime.now(),
                     lastDate: DateTime(2030),
                   );
-
-                  // Tarih seçildiyse state'i güncelle
                   if (picked != null && picked != selectedDate) {
-                    setState(() {
-                      selectedDate = picked;
-                    });
+                    setState(() => selectedDate = picked);
                   }
                 },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                child: _buildDropdownContainer(theme,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -265,14 +253,11 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                         selectedDate == null
                             ? l10n.formSelectDeadlineHint // Hiçbir şey seçilmediyse
                             : DateFormat('dd MMMM yyyy').format(selectedDate!),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontSize: 16,
-                        ),
+                        style: theme.textTheme.titleMedium,
                       ),
                       Icon(
                         Icons.calendar_today_rounded,
-                        color: Colors.grey[500],
+                        color: theme.colorScheme.onSurfaceVariant,
                         size: 20,
                       ),
                     ],
@@ -288,41 +273,53 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                 child: ElevatedButton(
                   onPressed: _isSaving ? null : _submit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
                   ),
                   child: _isSaving
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: theme.colorScheme.onPrimary, strokeWidth: 2))
                       : Text(
-                      widget.taskToEdit != null ? l10n.formSaveChanges : l10n.formCreateTask,
-                      style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)
-                  ),
+                          widget.taskToEdit != null ? l10n.formSaveChanges : l10n.formCreateTask,
+                      ),
                 ),
               ),
             ],
           ),
-          ),
         ),
       ),
+    ),
     );
   }
-  // Input Widget
-  Widget _buildFigmaInput({
+
+  Container _buildDropdownContainer(ThemeData theme, {required Widget child}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: child,
+    );
+  }
+
+  TextFormField _buildTextFormField({
     required TextEditingController controller,
     required String hint,
     required AppLocalizations l10n,
+    required ThemeData theme,
     int maxLines = 1,
   }) {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
-      validator: (value) => value!.isEmpty ? l10n.formCannotBeEmpty(hint) : null,
+      validator: (value) => (value == null || value.isEmpty) ? l10n.formCannotBeEmpty(hint) : null,
+      style: theme.textTheme.bodyLarge,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+        hintStyle: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         filled: true,
-        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        fillColor: theme.colorScheme.surfaceContainerHighest,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -332,14 +329,14 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
     );
   }
 
-  void _showMultiSelectDialog(BuildContext context, List<User> users, AppLocalizations l10n) {
+  void _showMultiSelectDialog(BuildContext context, List<User> users, AppLocalizations l10n, ThemeData theme) {
     showDialog(
       context: context,
       builder: (ctx) {
-        // Dialog içinde seçim yaparken ekranın güncellenmesi için StatefulBuilder lazım
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
+              backgroundColor: theme.colorScheme.surface,
               title: Text(l10n.formAssigneesHint),
               content: SizedBox(
                 width: double.maxFinite,
@@ -353,7 +350,6 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                     return CheckboxListTile(
                       title: Row(
                         children: [
-                          // Ufak Avatar
                           CircleAvatar(
                             radius: 12,
                             backgroundImage: (user.profilePictureUrl != null && user.profilePictureUrl!.isNotEmpty)
@@ -376,7 +372,6 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                             _selectedUserIds.remove(user.id);
                           }
                         });
-                        // Ana ekranı da güncelle ki arkadaki input alanı değişsin
                         this.setState(() {});
                       },
                     );

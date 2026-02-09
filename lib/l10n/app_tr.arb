@@ -28,5 +28,20 @@
   "viewModelUpdateFailed": "Güncelleme başarısız: {error}",
   "viewModelUpdateFailedRolledBack": "Güncelleme başarısız oldu, değişiklikler geri alındı.",
   "viewModelDeletionFailed": "Silme başarısız: {error}",
-  "viewModelBulkDeleteError": "Toplu silme hatası: {error}"
+  "viewModelBulkDeleteError": "Toplu silme hatası: {error}",
+  "bottomBarGoToWordNinja": "Word Ninja'ya Git",
+  "settingsTitle": "Ayarlar",
+  "settingsAppearance": "Görünüm",
+  "settingsLanguage": "Dil",
+  "settingsAbout": "Hakkında",
+  "settingsTheme": "Tema",
+  "settingsThemeSystem": "Sistem",
+  "settingsThemeLight": "Aydınlık",
+  "settingsThemeDark": "Karanlık",
+  "settingsLanguageEnglish": "İngilizce",
+  "settingsLanguageTurkish": "Türkçe",
+  "settingsVersion": "Sürüm",
+  "settingsLicenses": "Lisanslar",
+  "buyMeACoffee": "Bana bir kahve ısmarla ☕",
+  "searchHint": "Görev ara..."
 }

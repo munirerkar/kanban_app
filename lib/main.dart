@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kanban_project/viewmodels/settings_view_model.dart';
 import 'package:kanban_project/viewmodels/user_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:kanban_project/views/app_view.dart';
@@ -19,16 +20,22 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => TaskViewModel()),
         ChangeNotifierProvider(create: (_) => UserViewModel()),
+        ChangeNotifierProvider(create: (_) => SettingsViewModel()),
       ],
-      child: MaterialApp(
-        title: 'Kanban',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: const AppView(),
+      child: Consumer<SettingsViewModel>(
+        builder: (context, settingsViewModel, child) {
+          return MaterialApp(
+            title: 'Kanban',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: settingsViewModel.themeMode, // Listen to theme changes
+            locale: settingsViewModel.locale, // Listen to locale changes
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const AppView(),
+          );
+        },
       ),
     );
   }

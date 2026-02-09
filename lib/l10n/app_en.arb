@@ -28,5 +28,20 @@
   "viewModelUpdateFailed": "Update failed: {error}",
   "viewModelUpdateFailedRolledBack": "Update failed, rolled back.",
   "viewModelDeletionFailed": "Deletion failed: {error}",
-  "viewModelBulkDeleteError": "Bulk delete error: {error}"
+  "viewModelBulkDeleteError": "Bulk delete error: {error}",
+  "bottomBarGoToWordNinja": "Go to Word Ninja",
+  "settingsTitle": "Settings",
+  "settingsAppearance": "Appearance",
+  "settingsLanguage": "Language",
+  "settingsAbout": "About",
+  "settingsTheme": "Theme",
+  "settingsThemeSystem": "System",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsLanguageEnglish": "English",
+  "settingsLanguageTurkish": "Turkish",
+  "settingsVersion": "Version",
+  "settingsLicenses": "Licenses",
+  "buyMeACoffee": "Buy me a coffee ☕",
+  "searchHint": "Search tasks..."
 }

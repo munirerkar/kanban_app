@@ -16,7 +16,6 @@ class AppView extends StatefulWidget {
   State<AppView> createState() => _AppViewState();
 }
 
-
 class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
 
   @override
@@ -28,6 +27,17 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
       context.read<TaskViewModel>().fetchTasks(context);
       context.read<UserViewModel>().fetchUsers();
     });
+  }
+
+  void _goHome() {
+    // ViewModel'e erişip detay sayfasını kapat
+    context.read<TaskViewModel>().setOpenedTask(null);
+
+    // TabController'a erişip ilk sekmeye git
+    final tabController = DefaultTabController.of(context);
+    if (tabController.index != 0) {
+      tabController.animateTo(0);
+    }
   }
 
   @override
@@ -73,7 +83,7 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
             ),
 
             // BOTTOMBAR
-            bottomNavigationBar: const KanbanBottomBar(),
+            bottomNavigationBar: KanbanBottomBar(onHomePressed: _goHome), // Pass the callback here
 
             // Ekleme butonu
             floatingActionButton: (isDetailOpen || taskViewModel.isSelectionMode)
@@ -85,9 +95,9 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
                   builder: (context) => const TaskFormDialog(),
                 );
               },
-              backgroundColor: Theme.of(context).colorScheme.primary,
+              backgroundColor: Theme.of(context).colorScheme.primary, // Use color from theme
               elevation: 4,
-              child: Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary),
+              child: Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary), // Use contrasting color from theme
             ),
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           ),);
