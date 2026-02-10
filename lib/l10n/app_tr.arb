@@ -43,5 +43,9 @@
   "settingsVersion": "Sürüm",
   "settingsLicenses": "Lisanslar",
   "buyMeACoffee": "Bana bir kahve ısmarla ☕",
-  "searchHint": "Görev ara..."
+  "searchHint": "Görev ara...",
+  "deleteConfirmationTitle": "Silmeyi Onayla",
+  "deleteConfirmationMessage": "Seçili {count} görevi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+  "deleteButton": "Sil",
+  "cancelButton": "İptal"
 }

@@ -161,4 +161,18 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get searchHint => 'Görev ara...';
+
+  @override
+  String get deleteConfirmationTitle => 'Silmeyi Onayla';
+
+  @override
+  String deleteConfirmationMessage(Object count) {
+    return 'Seçili $count görevi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.';
+  }
+
+  @override
+  String get deleteButton => 'Sil';
+
+  @override
+  String get cancelButton => 'İptal';
 }

@@ -43,5 +43,9 @@
   "settingsVersion": "Version",
   "settingsLicenses": "Licenses",
   "buyMeACoffee": "Buy me a coffee ☕",
-  "searchHint": "Search tasks..."
+  "searchHint": "Search tasks...",
+  "deleteConfirmationTitle": "Confirm Deletion",
+  "deleteConfirmationMessage": "Are you sure you want to delete {count} selected tasks? This action cannot be undone.",
+  "deleteButton": "Delete",
+  "cancelButton": "Cancel"
 }

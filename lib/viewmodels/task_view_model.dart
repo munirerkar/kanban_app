@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../core/app_extensions.dart'; // Import the extension
 import '../models/task_model.dart';
 import '../models/task_status.dart';
+import '../models/user_model.dart';
 import '../services/task_service.dart';
 import '../l10n/app_localizations.dart';
 
@@ -27,8 +29,7 @@ class TaskViewModel extends ChangeNotifier {
   bool get isSelectionMode => _isSelectionMode;
   Set<int> get selectedTaskIds => _selectedTaskIds;
 
-
-  List<Task> getTasksByStatus(TaskStatus status) {
+  List<Task> getTasksByStatus(TaskStatus status, List<User> allUsers) {
     // Önce statüye göre filtrele
     final statusFilteredTasks = _tasks.where((task) => task.status == status).toList();
 
@@ -37,12 +38,23 @@ class TaskViewModel extends ChangeNotifier {
       return statusFilteredTasks;
     }
 
-    // Arama metnine göre başlık ve açıklamada filtrele (case-insensitive)
-    final lowerCaseQuery = _searchQuery.toLowerCase();
+    // Arama metnini ve aranacak alanları normalleştirerek filtrele
+    final normalizedQuery = _searchQuery.toNormalized();
     return statusFilteredTasks.where((task) {
-      final titleMatch = task.title.toLowerCase().contains(lowerCaseQuery);
-      final descriptionMatch = task.description.toLowerCase().contains(lowerCaseQuery);
-      return titleMatch || descriptionMatch;
+      final titleMatch = task.title.toNormalized().contains(normalizedQuery);
+      final descriptionMatch = task.description.toNormalized().contains(normalizedQuery);
+
+      // Atanan kullanıcıların isimlerinde ara (normalleştirilmiş)
+      final assigneeMatch = task.assigneeIds.any((assigneeId) {
+        try {
+          final user = allUsers.firstWhere((user) => user.id == assigneeId);
+          return user.name.toNormalized().contains(normalizedQuery);
+        } catch (e) {
+          return false; // User not found
+        }
+      });
+
+      return titleMatch || descriptionMatch || assigneeMatch;
     }).toList();
   }
 

@@ -17,7 +17,7 @@ class TaskColumn extends StatelessWidget {
     return Consumer2<TaskViewModel, UserViewModel>(
       builder: (context, taskViewModel, userViewModel, child) {
 
-        final tasks = taskViewModel.getTasksByStatus(status);
+        final tasks = taskViewModel.getTasksByStatus(status, userViewModel.users); // Pass users to the filter
 
         return RefreshIndicator(
           onRefresh: () async {
@@ -107,7 +107,7 @@ class TaskColumn extends StatelessWidget {
 
     return ReorderableListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: tasks.length,
       buildDefaultDragHandles: false,
 
@@ -153,74 +153,73 @@ class TaskColumn extends StatelessWidget {
 
         final isSelected = taskViewModel.selectedTaskIds.contains(task.id);
 
-        return Dismissible(
-            key: Key(task.id.toString()),
-            // Her kartın benzersiz anahtarı
-            direction: (taskViewModel.isSelectionMode || taskViewModel.isSearchMode)
-                ? DismissDirection.none // Arama veya seçim modunda kaydırmayı engelle
-                : (task.status == TaskStatus.BACKLOG)
-                ? DismissDirection.endToStart // Backlog sadece ileri (sola çekince) gidebilir
-                : (task.status == TaskStatus.DONE)
-                ? DismissDirection.startToEnd // Done sadece geri (sağa çekince) gidebilir
-                : DismissDirection.horizontal, // Diğerleri her iki yöne gidebilir
+        return Padding(
+          key: Key(task.id.toString()), // Anahtar Padding widget'ına taşındı
+          padding: const EdgeInsets.only(bottom: 12), // Kartlar arası dikey boşluk
+          child: Dismissible(
+              key: ValueKey('dismissable_${task.id}'),
+              direction: (taskViewModel.isSelectionMode || taskViewModel.isSearchMode)
+                  ? DismissDirection.none // Arama veya seçim modunda kaydırmayı engelle
+                  : (task.status == TaskStatus.BACKLOG)
+                  ? DismissDirection.endToStart // Backlog sadece ileri (sola çekince) gidebilir
+                  : (task.status == TaskStatus.DONE)
+                  ? DismissDirection.startToEnd // Done sadece geri (sağa çekince) gidebilir
+                  : DismissDirection.horizontal, // Diğerleri her iki yöne gidebilir
 
-            // --- ARKAPLAN TASARIMLARI ---
-            // Sola Kaydırınca (Geri Gitme Rengi - Turuncu/Kırmızı)
-            background: Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.only(left: 20),
-              alignment: Alignment.centerLeft,
-              decoration: BoxDecoration(
-                color: Colors.orange[300],
-                borderRadius: BorderRadius.circular(16),
+              // --- ARKAPLAN TASARIMLARI ---
+              // Sola Kaydırınca (Geri Gitme Rengi - Turuncu/Kırmızı)
+              background: Container(
+                padding: const EdgeInsets.only(left: 20),
+                alignment: Alignment.centerLeft,
+                decoration: BoxDecoration(
+                  color: Colors.orange[300],
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(Icons.undo, color: Colors.white, size: 30),
               ),
-              child: const Icon(Icons.undo, color: Colors.white, size: 30),
-            ),
-
-            // Sağa Kaydırınca (İleri Gitme Rengi - Yeşil)
-            secondaryBackground: Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.only(right: 20),
-              alignment: Alignment.centerRight,
-              decoration: BoxDecoration(
-                color: Colors.green[300],
-                borderRadius: BorderRadius.circular(16),
+              // Sağa Kaydırınca (İleri Gitme Rengi - Yeşil)
+              secondaryBackground: Container(
+                padding: const EdgeInsets.only(right: 20),
+                alignment: Alignment.centerRight,
+                decoration: BoxDecoration(
+                  color: Colors.green[300],
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                    Icons.arrow_forward, color: Colors.white, size: 30),
               ),
-              child: const Icon(
-                  Icons.arrow_forward, color: Colors.white, size: 30),
-            ),
 
-            // --- MANTIK KISMI ---
-            confirmDismiss: (direction) async {
-              TaskStatus? newStatus;
+              // --- MANTIK KISMI --- 
+              confirmDismiss: (direction) async {
+                TaskStatus? newStatus;
 
-              // Yön Kontrolü: Hangi statüdeyiz, nereye gidiyoruz?
-              if (direction == DismissDirection.endToStart) {
-                // SAĞA KAYDIRMA (İLERİ GİT) ->
-                if (task.status == TaskStatus.BACKLOG)
-                  newStatus = TaskStatus.TODO;
-                else if (task.status == TaskStatus.TODO)
-                  newStatus = TaskStatus.IN_PROGRESS;
-                else if (task.status == TaskStatus.IN_PROGRESS)
-                  newStatus = TaskStatus.DONE;
-              } else {
-                // SOLA KAYDIRMA (GERİ GİT) <-
-                if (task.status == TaskStatus.DONE)
-                  newStatus = TaskStatus.IN_PROGRESS;
-                else if (task.status == TaskStatus.IN_PROGRESS)
-                  newStatus = TaskStatus.TODO;
-                else if (task.status == TaskStatus.TODO)
-                  newStatus = TaskStatus.BACKLOG;
-              }
+                // Yön Kontrolü: Hangi statüdeyiz, nereye gidiyoruz?
+                if (direction == DismissDirection.endToStart) {
+                  // SAĞA KAYDIRMA (İLERİ GİT) ->
+                  if (task.status == TaskStatus.BACKLOG)
+                    newStatus = TaskStatus.TODO;
+                  else if (task.status == TaskStatus.TODO)
+                    newStatus = TaskStatus.IN_PROGRESS;
+                  else if (task.status == TaskStatus.IN_PROGRESS)
+                    newStatus = TaskStatus.DONE;
+                } else {
+                  // SOLA KAYDIRMA (GERİ GİT) <-
+                  if (task.status == TaskStatus.DONE)
+                    newStatus = TaskStatus.IN_PROGRESS;
+                  else if (task.status == TaskStatus.IN_PROGRESS)
+                    newStatus = TaskStatus.TODO;
+                  else if (task.status == TaskStatus.TODO)
+                    newStatus = TaskStatus.BACKLOG;
+                }
 
-              if (newStatus != null) {
-                context.read<TaskViewModel>().updateStatus(context, task, newStatus);
-                return false;
-              }
-              return false; // Değişiklik yoksa bir şey yapma
-            },
-            child: GestureDetector(
-              // 👇 UZUN BASINCA: Seçim modunu başlat
+                if (newStatus != null) {
+                  context.read<TaskViewModel>().updateStatus(context, task, newStatus);
+                  return false;
+                }
+                return false; // Değişiklik yoksa bir şey yapma
+              },
+              child: GestureDetector(
+                // 👇 UZUN BASINCA: Seçim modunu başlat
                 onLongPress: () {
                   taskViewModel.toggleSelectionMode(true);
                   taskViewModel.toggleTaskSelection(task.id!);
@@ -234,11 +233,8 @@ class TaskColumn extends StatelessWidget {
                     context.read<TaskViewModel>().setOpenedTask(task);
                   }
                 },
-
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  // Renk değişimi animasyonu
-                  margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.fromLTRB(16, 16, 5, 16),
                   decoration: BoxDecoration(
                     color: isSelected ? theme.colorScheme.primary.withOpacity(0.1) : theme.colorScheme.surface,
@@ -250,8 +246,7 @@ class TaskColumn extends StatelessWidget {
                       BoxShadow(color: theme.shadowColor.withOpacity(0.08),
                           spreadRadius: 2,
                           blurRadius: 8,
-                          offset: const
-                          Offset(0, 2)
+                          offset: const Offset(0, 2)
                       ),
                     ],
                   ),
@@ -280,22 +275,18 @@ class TaskColumn extends StatelessWidget {
                                 task.description,
                                 maxLines: 4,
                                 overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: Theme
-                                    .of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant, fontSize: 13),
+                                style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13),
                               ),
                             ),
                             const SizedBox(height: 12),
                             // Alt Satır: Avatar ve Tarih
                             Padding(
-                              padding: const EdgeInsets.only(right: 5.0), // Standart kenar boşluğu
+                              padding: const EdgeInsets.only(right: 5.0),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   taskAssignees.isEmpty
-                                      ? Icon(Icons.person_off_outlined, size: 18,
-                                      color: Colors.grey[300])
+                                      ? Icon(Icons.person_off_outlined, size: 18, color: theme.colorScheme.surfaceContainerHighest)
                                       : SizedBox(
                                     height: 24, // Avatar satırının yüksekliği
                                     child: ListView.builder(
@@ -311,11 +302,11 @@ class TaskColumn extends StatelessWidget {
                                         if (userIndex == 3) {
                                           return CircleAvatar(
                                             radius: 12,
-                                            backgroundColor: Colors.grey[300],
+                                            backgroundColor: theme.colorScheme.surfaceContainerHighest,
                                             child: Text(
                                               "+${taskAssignees.length - 3}",
-                                              style: const TextStyle(fontSize: 10,
-                                                  color: Colors.black54,
+                                              style: TextStyle(fontSize: 10,
+                                                  color: theme.colorScheme.onSurfaceVariant,
                                                   fontWeight: FontWeight.bold),
                                             ),
                                           );
@@ -328,15 +319,11 @@ class TaskColumn extends StatelessWidget {
                                           child: CircleAvatar(
                                             radius: 12,
                                             backgroundColor: Colors.grey[200],
-                                            backgroundImage: (user.profilePictureUrl !=
-                                                null &&
-                                                user.profilePictureUrl!.isNotEmpty)
+                                            backgroundImage: (user.profilePictureUrl != null && user.profilePictureUrl!.isNotEmpty)
                                                 ? NetworkImage(user.profilePictureUrl!)
                                                 : null,
-                                            child: (user.profilePictureUrl == null ||
-                                                user.profilePictureUrl!.isEmpty)
-                                                ? const Icon(Icons.person, size: 14,
-                                                color: Colors.grey)
+                                            child: (user.profilePictureUrl == null || user.profilePictureUrl!.isEmpty)
+                                                ? const Icon(Icons.person, size: 14, color: Colors.grey)
                                                 : null,
                                           ),
                                         );
@@ -350,30 +337,21 @@ class TaskColumn extends StatelessWidget {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 10, vertical: 5),
                                     decoration: BoxDecoration(
-                                      color: Theme
-                                          .of(context)
-                                          .colorScheme
-                                          .surfaceContainerHighest,
+                                      color: theme.colorScheme.surfaceContainerHighest,
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Icon(Icons.calendar_month_outlined, size: 14,
-                                            color: Theme
-                                                .of(context)
-                                                .colorScheme
-                                                .onSurfaceVariant),
+                                            color: theme.colorScheme.onSurfaceVariant),
                                         const SizedBox(width: 6),
                                         Flexible(child: Text(
                                           formattedDate,
                                           style: TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w600,
-                                            color: Theme
-                                                .of(context)
-                                                .colorScheme
-                                                .onSurfaceVariant,
+                                            color: theme.colorScheme.onSurfaceVariant,
                                           ),
                                           overflow: TextOverflow.ellipsis,
                                           maxLines: 1,
@@ -382,7 +360,7 @@ class TaskColumn extends StatelessWidget {
                                       ],
                                     ),
                                   ),
-                                  ),
+                                  )
                                 ],
                               ),
                             ),
@@ -405,7 +383,8 @@ class TaskColumn extends StatelessWidget {
                     ],
                   ),
                 ),
-            )
+              )
+          ),
         );
       },
     );

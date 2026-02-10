@@ -160,4 +160,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchHint => 'Search tasks...';
+
+  @override
+  String get deleteConfirmationTitle => 'Confirm Deletion';
+
+  @override
+  String deleteConfirmationMessage(Object count) {
+    return 'Are you sure you want to delete $count selected tasks? This action cannot be undone.';
+  }
+
+  @override
+  String get deleteButton => 'Delete';
+
+  @override
+  String get cancelButton => 'Cancel';
 }

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/task_status.dart';
 import '../viewmodels/task_view_model.dart';
+import '../viewmodels/user_view_model.dart';
 import '../views/settings_view.dart';
 import '../views/task_form_dialog.dart';
 
@@ -15,6 +16,7 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final taskViewModel = context.watch<TaskViewModel>();
+    final userViewModel = context.watch<UserViewModel>(); // UserViewModel'i de dinle
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
@@ -38,10 +40,10 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
         unselectedLabelColor: theme.colorScheme.onPrimary.withOpacity(0.7),
         labelStyle: const TextStyle(fontWeight: FontWeight.bold),
         tabs: [
-          _buildTabItem(l10n.appBarBacklog, taskViewModel.getTasksByStatus(TaskStatus.BACKLOG).length, theme),
-          _buildTabItem(l10n.appBarToDo, taskViewModel.getTasksByStatus(TaskStatus.TODO).length, theme),
-          _buildTabItem(l10n.appBarInProgress, taskViewModel.getTasksByStatus(TaskStatus.IN_PROGRESS).length, theme),
-          _buildTabItem(l10n.appBarDone, taskViewModel.getTasksByStatus(TaskStatus.DONE).length, theme),
+          _buildTabItem(l10n.appBarBacklog, taskViewModel.getTasksByStatus(TaskStatus.BACKLOG, userViewModel.users).length, theme),
+          _buildTabItem(l10n.appBarToDo, taskViewModel.getTasksByStatus(TaskStatus.TODO, userViewModel.users).length, theme),
+          _buildTabItem(l10n.appBarInProgress, taskViewModel.getTasksByStatus(TaskStatus.IN_PROGRESS, userViewModel.users).length, theme),
+          _buildTabItem(l10n.appBarDone, taskViewModel.getTasksByStatus(TaskStatus.DONE, userViewModel.users).length, theme),
         ],
       ),
     );
@@ -111,6 +113,7 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   List<Widget> _buildActions(BuildContext context, TaskViewModel viewModel) {
+    final l10n = AppLocalizations.of(context)!;
     if (viewModel.isSearchMode) {
       return []; // Arama modunda aksiyon butonu olmasın
     } else if (viewModel.openedTask != null) {
@@ -119,7 +122,34 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
       ];
     } else if (viewModel.isSelectionMode) {
       return [
-        IconButton(icon: const Icon(Icons.delete_outline), onPressed: () async => await viewModel.deleteSelectedTasks(context)),
+        IconButton(
+          icon: const Icon(Icons.delete_outline),
+          onPressed: () async {
+            final bool? confirmed = await showDialog<bool>(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text(l10n.deleteConfirmationTitle),
+                  content: Text(l10n.deleteConfirmationMessage(viewModel.selectedTaskIds.length)),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: Text(l10n.cancelButton),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: Text(l10n.deleteButton, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                    ),
+                  ],
+                );
+              },
+            );
+
+            if (confirmed == true) {
+              await viewModel.deleteSelectedTasks(context);
+            }
+          },
+        ),
       ];
     } else {
       return [
