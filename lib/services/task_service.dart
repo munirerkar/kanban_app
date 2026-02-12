@@ -79,4 +79,13 @@ class TaskService {
       throw Exception('Delete error: $e');
     }
   }
+
+  // Reorder tasks in backend (bulk)
+  Future<void> reorderTasks(List<Map<String, dynamic>> orders) async {
+    try {
+      await _dio.patch('${AppConstants.tasksEndpoint}/reorder', data: orders);
+    } catch (e) {
+      throw Exception('Reorder error: $e');
+    }
+  }
 }

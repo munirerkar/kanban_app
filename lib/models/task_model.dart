@@ -6,6 +6,7 @@ class Task {
   final String description;
   final TaskStatus status;
   final String deadline;
+  final int orderIndex;
   final List<int> assigneeIds;
 
   Task({
@@ -14,6 +15,7 @@ class Task {
     required this.description,
     required this.status,
     required this.deadline,
+    this.orderIndex = 0,
     this.assigneeIds = const [],
   });
 
@@ -38,6 +40,7 @@ class Task {
       description: json['description'] ?? '',
       status: stringToTaskStatus(json['status']),
       deadline: json['deadline'] ?? '',
+      orderIndex: json['orderIndex'] ?? json['order_index'] ?? 0,
       assigneeIds: safeIds,
     );
   }
@@ -48,6 +51,7 @@ class Task {
       'description': description,
       'status': status.toShortString,
       'deadline': deadline,
+      'orderIndex': orderIndex,
       'assigneeIds': assigneeIds,
     };
   }
@@ -57,6 +61,7 @@ class Task {
     String? description,
     TaskStatus? status,
     String? deadline,
+    int? orderIndex,
     List<int>? assigneeIds,
   }) {
     return Task(
@@ -65,6 +70,7 @@ class Task {
       description: description ?? this.description,
       status: status ?? this.status,
       deadline: deadline ?? this.deadline,
+      orderIndex: orderIndex ?? this.orderIndex,
       assigneeIds: assigneeIds ?? this.assigneeIds,
     );
   }

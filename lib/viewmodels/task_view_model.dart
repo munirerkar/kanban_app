@@ -255,24 +255,40 @@ class TaskViewModel extends ChangeNotifier {
   }
 
   void reorderLocalTasks(TaskStatus status, int oldIndex, int newIndex) {
-    // O statüdeki görevlerin gerçek listesini bul
+    // Build the list of tasks in the given status without mutating _tasks yet
     final tasksInStatus = _tasks.where((t) => t.status == status).toList();
+    if (oldIndex < 0 || oldIndex >= tasksInStatus.length) return;
 
-    // Taşınan görevi al
-    final taskToMove = tasksInStatus[oldIndex];
+    // Move within the status list
+    final moved = tasksInStatus.removeAt(oldIndex);
+    tasksInStatus.insert(newIndex, moved);
 
-    _tasks.remove(taskToMove); // Listeden sök
+    // Create updated list with new orderIndex values
+    final List<Task> updatedTasksInStatus = [];
+    for (int i = 0; i < tasksInStatus.length; i++) {
+      updatedTasksInStatus.add(tasksInStatus[i].copyWith(orderIndex: i));
+    }
 
-    // Listeyi statüye göre ayırıp tekrar birleştiriyoruz
-    tasksInStatus.removeAt(oldIndex);
-    tasksInStatus.insert(newIndex, taskToMove);
-
-    // Diğer statüdeki görevler
+    // Keep other tasks as-is
     final otherTasks = _tasks.where((t) => t.status != status).toList();
 
-    // Listeyi yeniden oluştur
-    _tasks = [...tasksInStatus, ...otherTasks];
+    // Rebuild main list: status group first (preserve chosen grouping), then others
+    _tasks = [...updatedTasksInStatus, ...otherTasks];
 
     notifyListeners();
+
+    // Send reorder to backend (optimistic)
+    try {
+      final orders = updatedTasksInStatus.map((t) => {
+            'id': t.id,
+            'orderIndex': t.orderIndex,
+            'status': t.status.toShortString,
+          }).toList();
+
+      _taskService.reorderTasks(List<Map<String, dynamic>>.from(orders));
+    } catch (e) {
+      _errorMessage = 'Sıralama kaydedilemedi: $e';
+      notifyListeners();
+    }
   }
 }
