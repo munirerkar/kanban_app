@@ -6,6 +6,7 @@ import '../viewmodels/task_view_model.dart';
 import '../viewmodels/user_view_model.dart';
 import '../views/settings_view.dart';
 import '../views/task_form_dialog.dart';
+import 'color_picker_dialog.dart';
 
 class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
   const KanbanAppBar({super.key});
@@ -114,6 +115,8 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   List<Widget> _buildActions(BuildContext context, TaskViewModel viewModel) {
     final l10n = AppLocalizations.of(context)!;
+    final colorIconKey = GlobalKey();
+
     if (viewModel.isSearchMode) {
       return []; // Arama modunda aksiyon butonu olmasın
     } else if (viewModel.openedTask != null) {
@@ -125,14 +128,31 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
       return [
         // Color circle: opens small palette (keeps multi-select color action)
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: GestureDetector(
+            key: colorIconKey,
             onTap: () async {
-              // show a small menu anchored to appbar for multi-select color
-              final picked = await showMenu<String?>(
+              final renderBox = colorIconKey.currentContext?.findRenderObject() as RenderBox?;
+              if (renderBox == null) return;
+              final offset = renderBox.localToGlobal(Offset.zero);
+
+              final picked = await showGeneralDialog<String?>(
                 context: context,
-                position: RelativeRect.fromLTRB(1000, kToolbarHeight, 8, 0),
-                items: _fixedPalette().map((hex) => PopupMenuItem(value: hex, child: Container(width: 36, height: 36, decoration: BoxDecoration(color: _parseColor(hex, Theme.of(context)), shape: BoxShape.circle)))) .toList(),
+                barrierDismissible: true,
+                barrierLabel: '',
+                barrierColor: Colors.black.withOpacity(0.4),
+                transitionDuration: const Duration(milliseconds: 200),
+                pageBuilder: (context, anim1, anim2) {
+                  return Stack(
+                    children: [
+                      Positioned(
+                        top: offset.dy + renderBox.size.height + 10,
+                        left: offset.dx + (renderBox.size.width / 2) - 27,
+                        child: const ColorPickerDialog(),
+                      ),
+                    ],
+                  );
+                },
               );
 
               if (picked != null) {
@@ -155,25 +175,5 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
       ];
     }
   }
-
-  List<String> _fixedPalette() {
-    return [
-      '#E0E0E0', // önemsiz (gray)
-      '#90CAF9', // biraz önemli (light blue)
-      '#42A5F5', // önemli (blue)
-      '#FF5900', // çok önemli (orange)
-      '#EF5350', // acil (red)
-      '#8E24AA', // aşırı önemli (purple)
-    ];
-  }
-
-  Color _parseColor(String colorString, ThemeData theme) {
-    try {
-      var s = colorString.replaceAll('#', '');
-      if (s.length == 6) s = 'FF' + s;
-      return Color(int.parse(s, radix: 16));
-    } catch (_) {
-      return theme.colorScheme.primary;
-    }
-  }
 }
+

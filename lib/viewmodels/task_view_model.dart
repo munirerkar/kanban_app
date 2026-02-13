@@ -315,39 +315,42 @@ class TaskViewModel extends ChangeNotifier {
     final l10n = AppLocalizations.of(context)!;
     final index = _tasks.indexWhere((t) => t.id == task.id);
     if (index == -1) return;
-    final updated = task.copyWith(favorite: !task.favorite);
-    _tasks[index] = updated;
 
-    // After changing favorite, reorder tasks within same status so favorites stay on top
-    final status = updated.status;
-    final tasksInStatus = _tasks.where((t) => t.status == status).toList();
+    final updatedTask = task.copyWith(favorite: !task.favorite);
 
-    // Ensure favorites first, and place the newly favorited item at top of favorites
-    final favs = tasksInStatus.where((t) => t.favorite || (t.id == updated.id && updated.favorite)).toList();
-    // Move the toggled item to beginning of favs
-    favs.removeWhere((t) => t.id == updated.id);
-    favs.insert(0, updated);
+    // Separate tasks for the affected status
+    final status = updatedTask.status;
+    final tasksInStatus = _tasks.where((t) => t.status == status && t.id != task.id).toList();
+    
+    // Group them by favorite status
+    final favs = tasksInStatus.where((t) => t.favorite).toList();
+    final others = tasksInStatus.where((t) => !t.favorite).toList();
 
-    final others = tasksInStatus.where((t) => !t.favorite && t.id != updated.id).toList();
+    // Place the updated task in the correct group
+    if (updatedTask.favorite) {
+      favs.insert(0, updatedTask); // Add to top of favorites
+    } else {
+      others.insert(0, updatedTask); // Add to top of non-favorites
+    }
 
+    // Re-combine and re-index the entire column
     final newStatusList = <Task>[];
-    for (int i = 0; i < favs.length; i++) {
-      newStatusList.add(favs[i].copyWith(orderIndex: i));
+    int currentOrderIndex = 0;
+    for (var t in favs) {
+      newStatusList.add(t.copyWith(orderIndex: currentOrderIndex++));
     }
-    for (int i = 0; i < others.length; i++) {
-      newStatusList.add(others[i].copyWith(orderIndex: favs.length + i));
+    for (var t in others) {
+      newStatusList.add(t.copyWith(orderIndex: currentOrderIndex++));
     }
-
-    // Rebuild _tasks preserving other statuses
+    
+    // Rebuild the main task list
     final otherTasks = _tasks.where((t) => t.status != status).toList();
     _tasks = [...newStatusList, ...otherTasks];
+    
+    notifyListeners(); // Optimistic UI update
 
-    notifyListeners();
-
-    // Persist favorite change and new ordering to backend
+    // Persist the changes to the backend using the reorder endpoint
     try {
-      await _taskService.setFavorite(task.id!, updated.favorite);
-
       final orders = newStatusList.map((t) => {
             'id': t.id,
             'orderIndex': t.orderIndex,
@@ -357,6 +360,8 @@ class TaskViewModel extends ChangeNotifier {
       await _taskService.reorderTasks(List<Map<String, dynamic>>.from(orders));
     } catch (e) {
       _errorMessage = l10n.viewModelUpdateFailed(e.toString());
+      // NOTE: A rollback mechanism would be ideal here, but is complex.
+      // For now, we just show an error. The user can refresh.
       notifyListeners();
     }
   }
@@ -366,23 +371,29 @@ class TaskViewModel extends ChangeNotifier {
     final l10n = AppLocalizations.of(context)!;
     if (_selectedTaskIds.isEmpty) return;
 
-    // Update local tasks
-    for (int i = 0; i < _tasks.length; i++) {
-      if (_selectedTaskIds.contains(_tasks[i].id)) {
-        _tasks[i] = _tasks[i].copyWith(color: colorHex);
-      }
-    }
-    notifyListeners();
-
-    // Persist changes one by one
+    _setLoading(true);
     try {
+      // Update local tasks
+      for (int i = 0; i < _tasks.length; i++) {
+        if (_selectedTaskIds.contains(_tasks[i].id)) {
+          _tasks[i] = _tasks[i].copyWith(color: colorHex);
+        }
+      }
+      notifyListeners();
+
+      // Persist changes one by one
       for (int id in _selectedTaskIds) {
         final task = _tasks.firstWhere((t) => t.id == id);
         await _taskService.updateTask(task);
       }
+
+      // Clean up selection mode
+      toggleSelectionMode(false);
     } catch (e) {
       _errorMessage = l10n.viewModelUpdateFailed(e.toString());
       notifyListeners();
+    } finally {
+      _setLoading(false);
     }
   }
 
