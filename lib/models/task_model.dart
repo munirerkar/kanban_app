@@ -7,6 +7,8 @@ class Task {
   final TaskStatus status;
   final String deadline;
   final int orderIndex;
+  final bool favorite;
+  final String? color;
   final List<int> assigneeIds;
 
   Task({
@@ -16,6 +18,8 @@ class Task {
     required this.status,
     required this.deadline,
     this.orderIndex = 0,
+    this.favorite = false,
+    this.color,
     this.assigneeIds = const [],
   });
 
@@ -41,6 +45,8 @@ class Task {
       status: stringToTaskStatus(json['status']),
       deadline: json['deadline'] ?? '',
       orderIndex: json['orderIndex'] ?? json['order_index'] ?? 0,
+      favorite: json['favorite'] ?? false,
+      color: json['color'],
       assigneeIds: safeIds,
     );
   }
@@ -52,6 +58,8 @@ class Task {
       'status': status.toShortString,
       'deadline': deadline,
       'orderIndex': orderIndex,
+      'favorite': favorite,
+      'color': color,
       'assigneeIds': assigneeIds,
     };
   }
@@ -62,6 +70,8 @@ class Task {
     TaskStatus? status,
     String? deadline,
     int? orderIndex,
+    bool? favorite,
+    String? color,
     List<int>? assigneeIds,
   }) {
     return Task(
@@ -71,6 +81,8 @@ class Task {
       status: status ?? this.status,
       deadline: deadline ?? this.deadline,
       orderIndex: orderIndex ?? this.orderIndex,
+      favorite: favorite ?? this.favorite,
+      color: color ?? this.color,
       assigneeIds: assigneeIds ?? this.assigneeIds,
     );
   }

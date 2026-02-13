@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kanban_project/l10n/app_localizations.dart';
 import 'package:kanban_project/views/task_detail_view.dart';
 import 'package:provider/provider.dart';
 import '../models/task_status.dart';
@@ -85,20 +86,45 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
             // BOTTOMBAR
             bottomNavigationBar: KanbanBottomBar(onHomePressed: _goHome), // Pass the callback here
 
-            // Ekleme butonu
-            floatingActionButton: (isDetailOpen || taskViewModel.isSelectionMode)
+            // Ekleme / Seçim modunda silme butonu
+            floatingActionButton: isDetailOpen
                 ? null
-                : FloatingActionButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => const TaskFormDialog(),
-                );
-              },
-              backgroundColor: Theme.of(context).colorScheme.primary, // Use color from theme
-              elevation: 4,
-              child: Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary), // Use contrasting color from theme
-            ),
+                : (taskViewModel.isSelectionMode
+                    ? FloatingActionButton(
+                        onPressed: () async {
+                          final l10n = AppLocalizations.of(context)!;
+                          final bool? confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text(l10n.deleteConfirmationTitle),
+                                content: Text(l10n.deleteConfirmationMessage(taskViewModel.selectedTaskIds.length)),
+                                actions: <Widget>[
+                                  TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.cancelButton)),
+                                  TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.deleteButton, style: TextStyle(color: Theme.of(context).colorScheme.error))),
+                                ],
+                              );
+                            },
+                          );
+
+                          if (confirmed == true) {
+                            await taskViewModel.deleteSelectedTasks(context);
+                          }
+                        },
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                        child: const Icon(Icons.delete_outline),
+                      )
+                    : FloatingActionButton(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => const TaskFormDialog(),
+                          );
+                        },
+                        backgroundColor: Theme.of(context).colorScheme.primary, // Use color from theme
+                        elevation: 4,
+                        child: Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary), // Use contrasting color from theme
+                      )),
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           ),);
 

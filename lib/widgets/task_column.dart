@@ -237,7 +237,9 @@ class TaskColumn extends StatelessWidget {
                   duration: const Duration(milliseconds: 300),
                   padding: const EdgeInsets.fromLTRB(16, 16, 5, 16),
                   decoration: BoxDecoration(
-                    color: isSelected ? theme.colorScheme.primary.withOpacity(0.1) : theme.colorScheme.surface,
+                    color: (task.color != null && task.color!.isNotEmpty)
+                        ? _parseColor(task.color!, theme)
+                        : (isSelected ? theme.colorScheme.primary.withOpacity(0.1) : theme.colorScheme.surface),
                     border: isSelected ? Border.all(color: theme.colorScheme.primary, width: 2) : null,
                     // Seçiliyse mavi çerçeve
                     borderRadius: BorderRadius.circular(16),
@@ -252,6 +254,23 @@ class TaskColumn extends StatelessWidget {
                   ),
                   child: Stack(
                     children: [
+                        // Color indicator bar on the left
+                        if (task.color != null && task.color!.isNotEmpty)
+                          Positioned(
+                            left: 0,
+                            top: 0,
+                            bottom: 0,
+                            child: Container(
+                              width: 6,
+                              decoration: BoxDecoration(
+                                color: _parseColor(task.color!, theme),
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(16),
+                                  bottomLeft: Radius.circular(16),
+                                ),
+                              ),
+                            ),
+                          ),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -263,7 +282,9 @@ class TaskColumn extends StatelessWidget {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
-                                  color: theme.colorScheme.onSurface,
+                                  color: (task.color != null && task.color!.isNotEmpty)
+                                      ? (_textColorForBackground(task.color!, theme))
+                                      : theme.colorScheme.onSurface,
                                 ),
                               ),
                             ),
@@ -275,7 +296,11 @@ class TaskColumn extends StatelessWidget {
                                 task.description,
                                 maxLines: 4,
                                 overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13),
+                                style: TextStyle(
+                                    color: (task.color != null && task.color!.isNotEmpty)
+                                        ? (_textColorForBackground(task.color!, theme).withOpacity(0.9))
+                                        : theme.colorScheme.onSurfaceVariant,
+                                    fontSize: 13),
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -285,7 +310,7 @@ class TaskColumn extends StatelessWidget {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  taskAssignees.isEmpty
+                                    taskAssignees.isEmpty
                                       ? Icon(Icons.person_off_outlined, size: 18, color: theme.colorScheme.surfaceContainerHighest)
                                       : SizedBox(
                                     height: 24, // Avatar satırının yüksekliği
@@ -366,18 +391,43 @@ class TaskColumn extends StatelessWidget {
                             ),
                           ],
                         ),
-                      // TUTAÇ (DRAG HANDLE)
+                      // FAVORI (STAR) + TUTAÇ (DRAG HANDLE)
                       if (!taskViewModel.isSearchMode)
                         Positioned(
                           top: -10,
                           right: 0,
-                          child: ReorderableDragStartListener(
-                            index: index,
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              color: Colors.transparent,
-                              child: Icon(Icons.drag_indicator, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5), size: 20),
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Favorite star on card
+                              GestureDetector(
+                                onTap: () {
+                                  if (taskViewModel.isSelectionMode) {
+                                    // apply favorite to selected tasks (toggle to true)
+                                    taskViewModel.setFavoriteForSelected(context, true);
+                                  } else {
+                                    taskViewModel.toggleFavorite(context, task);
+                                  }
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                                  child: Icon(
+                                    task.favorite ? Icons.star : Icons.star_border,
+                                    color: task.favorite ? Colors.amber : Colors.amber.withOpacity(0.6),
+                                    size: 24,
+                                  ),
+                                ),
+                              ),
+
+                              ReorderableDragStartListener(
+                                index: index,
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  color: Colors.transparent,
+                                  child: Icon(Icons.drag_indicator, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5), size: 20),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                     ],
@@ -390,3 +440,21 @@ class TaskColumn extends StatelessWidget {
     );
   }
 }
+
+Color _parseColor(String colorString, ThemeData theme) {
+  try {
+    var s = colorString.replaceAll('#', '');
+    if (s.length == 6) s = 'FF' + s;
+    return Color(int.parse(s, radix: 16));
+  } catch (_) {
+    return theme.colorScheme.surface;
+  }
+}
+
+Color _textColorForBackground(String colorString, ThemeData theme) {
+  final bg = _parseColor(colorString, theme);
+  // Compute luminance to decide text color
+  return bg.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+}
+
+

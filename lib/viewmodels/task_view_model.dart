@@ -94,7 +94,7 @@ class TaskViewModel extends ChangeNotifier {
   }
 
   // Yeni Görev Ekle
-  Future<void> addTask(BuildContext context, String title, String description, String deadline, TaskStatus status, List<int> assigneeIds) async {
+  Future<void> addTask(BuildContext context, String title, String description, String deadline, TaskStatus status, List<int> assigneeIds, {String? color}) async {
     final l10n = AppLocalizations.of(context)!;
     _setLoading(true);
     try {
@@ -103,6 +103,7 @@ class TaskViewModel extends ChangeNotifier {
         description: description,
         deadline: deadline,
         status: status,
+        color: color,
         assigneeIds: assigneeIds,
       );
       final createdTask = await _taskService.createTask(newTask);
@@ -257,16 +258,32 @@ class TaskViewModel extends ChangeNotifier {
   void reorderLocalTasks(TaskStatus status, int oldIndex, int newIndex) {
     // Build the list of tasks in the given status without mutating _tasks yet
     final tasksInStatus = _tasks.where((t) => t.status == status).toList();
-    if (oldIndex < 0 || oldIndex >= tasksInStatus.length) return;
+    // Ensure favorites stay on top: split into fav and others
+    final favs = tasksInStatus.where((t) => t.favorite).toList();
+    final others = tasksInStatus.where((t) => !t.favorite).toList();
 
-    // Move within the status list
-    final moved = tasksInStatus.removeAt(oldIndex);
-    tasksInStatus.insert(newIndex, moved);
+    final List<Task> groupList = [...favs, ...others];
+    if (oldIndex < 0 || oldIndex >= groupList.length) return;
 
-    // Create updated list with new orderIndex values
+    // If moving across favorite boundary is attempted, constrain movement so favorites remain top
+    final moved = groupList.removeAt(oldIndex);
+
+    // If moved is favorite, it cannot be placed after favs.length-1 (i.e., cannot go into others area)
+    if (moved.favorite) {
+      final maxIndex = favs.length - 1; // last allowed index for favorites before move
+      final targetIndex = newIndex.clamp(0, maxIndex);
+      groupList.insert(targetIndex, moved);
+    } else {
+      // Non-favorite cannot be inserted before favs (i.e., index < favs.length)
+      final minIndex = favs.length;
+      final targetIndex = newIndex.clamp(minIndex, groupList.length);
+      groupList.insert(targetIndex, moved);
+    }
+
+    // Create updated list with new orderIndex values within the status
     final List<Task> updatedTasksInStatus = [];
-    for (int i = 0; i < tasksInStatus.length; i++) {
-      updatedTasksInStatus.add(tasksInStatus[i].copyWith(orderIndex: i));
+    for (int i = 0; i < groupList.length; i++) {
+      updatedTasksInStatus.add(groupList[i].copyWith(orderIndex: i));
     }
 
     // Keep other tasks as-is
@@ -283,11 +300,113 @@ class TaskViewModel extends ChangeNotifier {
             'id': t.id,
             'orderIndex': t.orderIndex,
             'status': t.status.toShortString,
+            'favorite': t.favorite,
           }).toList();
 
       _taskService.reorderTasks(List<Map<String, dynamic>>.from(orders));
     } catch (e) {
       _errorMessage = 'Sıralama kaydedilemedi: $e';
+      notifyListeners();
+    }
+  }
+
+  // Toggle favorite for a task and persist
+  Future<void> toggleFavorite(BuildContext context, Task task) async {
+    final l10n = AppLocalizations.of(context)!;
+    final index = _tasks.indexWhere((t) => t.id == task.id);
+    if (index == -1) return;
+    final updated = task.copyWith(favorite: !task.favorite);
+    _tasks[index] = updated;
+
+    // After changing favorite, reorder tasks within same status so favorites stay on top
+    final status = updated.status;
+    final tasksInStatus = _tasks.where((t) => t.status == status).toList();
+
+    // Ensure favorites first, and place the newly favorited item at top of favorites
+    final favs = tasksInStatus.where((t) => t.favorite || (t.id == updated.id && updated.favorite)).toList();
+    // Move the toggled item to beginning of favs
+    favs.removeWhere((t) => t.id == updated.id);
+    favs.insert(0, updated);
+
+    final others = tasksInStatus.where((t) => !t.favorite && t.id != updated.id).toList();
+
+    final newStatusList = <Task>[];
+    for (int i = 0; i < favs.length; i++) {
+      newStatusList.add(favs[i].copyWith(orderIndex: i));
+    }
+    for (int i = 0; i < others.length; i++) {
+      newStatusList.add(others[i].copyWith(orderIndex: favs.length + i));
+    }
+
+    // Rebuild _tasks preserving other statuses
+    final otherTasks = _tasks.where((t) => t.status != status).toList();
+    _tasks = [...newStatusList, ...otherTasks];
+
+    notifyListeners();
+
+    // Persist favorite change and new ordering to backend
+    try {
+      await _taskService.setFavorite(task.id!, updated.favorite);
+
+      final orders = newStatusList.map((t) => {
+            'id': t.id,
+            'orderIndex': t.orderIndex,
+            'status': t.status.toShortString,
+            'favorite': t.favorite,
+          }).toList();
+      await _taskService.reorderTasks(List<Map<String, dynamic>>.from(orders));
+    } catch (e) {
+      _errorMessage = l10n.viewModelUpdateFailed(e.toString());
+      notifyListeners();
+    }
+  }
+
+  // Apply color to multiple selected tasks
+  Future<void> applyColorToSelected(BuildContext context, String colorHex) async {
+    final l10n = AppLocalizations.of(context)!;
+    if (_selectedTaskIds.isEmpty) return;
+
+    // Update local tasks
+    for (int i = 0; i < _tasks.length; i++) {
+      if (_selectedTaskIds.contains(_tasks[i].id)) {
+        _tasks[i] = _tasks[i].copyWith(color: colorHex);
+      }
+    }
+    notifyListeners();
+
+    // Persist changes one by one
+    try {
+      for (int id in _selectedTaskIds) {
+        final task = _tasks.firstWhere((t) => t.id == id);
+        await _taskService.updateTask(task);
+      }
+    } catch (e) {
+      _errorMessage = l10n.viewModelUpdateFailed(e.toString());
+      notifyListeners();
+    }
+  }
+
+  // Set favorite for all selected tasks (true/false)
+  Future<void> setFavoriteForSelected(BuildContext context, bool favorite) async {
+    final l10n = AppLocalizations.of(context)!;
+    if (_selectedTaskIds.isEmpty) return;
+
+    // Update local and persist
+    for (int i = 0; i < _tasks.length; i++) {
+      if (_selectedTaskIds.contains(_tasks[i].id)) {
+        _tasks[i] = _tasks[i].copyWith(favorite: favorite);
+      }
+    }
+    notifyListeners();
+
+    try {
+      for (int id in _selectedTaskIds) {
+        await _taskService.setFavorite(id!, favorite);
+      }
+      // After favorites changed, re-fetch to get ordering consistent from backend
+      await fetchTasks(context);
+    } catch (e) {
+      _errorMessage = l10n.viewModelUpdateFailed(e.toString());
       notifyListeners();
     }
   }

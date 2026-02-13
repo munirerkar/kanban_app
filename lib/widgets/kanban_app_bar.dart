@@ -121,34 +121,31 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(icon: const Icon(Icons.edit), onPressed: () => showDialog(context: context, builder: (context) => TaskFormDialog(taskToEdit: viewModel.openedTask))),
       ];
     } else if (viewModel.isSelectionMode) {
+      // Show color selector circle and favorite icon in appbar during selection mode
       return [
-        IconButton(
-          icon: const Icon(Icons.delete_outline),
-          onPressed: () async {
-            final bool? confirmed = await showDialog<bool>(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text(l10n.deleteConfirmationTitle),
-                  content: Text(l10n.deleteConfirmationMessage(viewModel.selectedTaskIds.length)),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: Text(l10n.cancelButton),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: Text(l10n.deleteButton, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                    ),
-                  ],
-                );
-              },
-            );
+        // Color circle: opens small palette (keeps multi-select color action)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: GestureDetector(
+            onTap: () async {
+              // show a small menu anchored to appbar for multi-select color
+              final picked = await showMenu<String?>(
+                context: context,
+                position: RelativeRect.fromLTRB(1000, kToolbarHeight, 8, 0),
+                items: _fixedPalette().map((hex) => PopupMenuItem(value: hex, child: Container(width: 36, height: 36, decoration: BoxDecoration(color: _parseColor(hex, Theme.of(context)), shape: BoxShape.circle)))) .toList(),
+              );
 
-            if (confirmed == true) {
-              await viewModel.deleteSelectedTasks(context);
-            }
-          },
+              if (picked != null) {
+                await viewModel.applyColorToSelected(context, picked);
+              }
+            },
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7))),
+              child: Center(child: Icon(Icons.circle, size: 18, color: Theme.of(context).colorScheme.onPrimary)),
+            ),
+          ),
         ),
       ];
     } else {
@@ -156,6 +153,27 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(icon: const Icon(Icons.search), onPressed: () => viewModel.toggleSearchMode(true)),
         IconButton(icon: const Icon(Icons.settings), onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsView()))),
       ];
+    }
+  }
+
+  List<String> _fixedPalette() {
+    return [
+      '#E0E0E0', // önemsiz (gray)
+      '#90CAF9', // biraz önemli (light blue)
+      '#42A5F5', // önemli (blue)
+      '#FF5900', // çok önemli (orange)
+      '#EF5350', // acil (red)
+      '#8E24AA', // aşırı önemli (purple)
+    ];
+  }
+
+  Color _parseColor(String colorString, ThemeData theme) {
+    try {
+      var s = colorString.replaceAll('#', '');
+      if (s.length == 6) s = 'FF' + s;
+      return Color(int.parse(s, radix: 16));
+    } catch (_) {
+      return theme.colorScheme.primary;
     }
   }
 }

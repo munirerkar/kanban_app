@@ -71,6 +71,15 @@ class TaskService {
     }
   }
 
+  // Toggle favorite
+  Future<void> setFavorite(int taskId, bool favorite) async {
+    try {
+      await _dio.patch('${AppConstants.tasksEndpoint}/$taskId/favorite', queryParameters: {'favorite': favorite});
+    } catch (e) {
+      throw Exception('Set favorite error: $e');
+    }
+  }
+
   // Görev silme (DELETE)
   Future<void> deleteTask(int id) async {
     try {
