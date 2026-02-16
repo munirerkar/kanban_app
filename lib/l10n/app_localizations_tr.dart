@@ -9,16 +9,16 @@ class AppLocalizationsTr extends AppLocalizations {
   AppLocalizationsTr([String locale = 'tr']) : super(locale);
 
   @override
-  String get appBarBacklog => 'Beklemede';
+  String get appBarBacklog => 'Backlog';
 
   @override
-  String get appBarToDo => 'Yapılacak';
+  String get appBarToDo => 'To Do';
 
   @override
-  String get appBarInProgress => 'Sürüyor';
+  String get appBarInProgress => 'Progress';
 
   @override
-  String get appBarDone => 'Bitti';
+  String get appBarDone => 'Done';
 
   @override
   String get appBarTaskDetails => 'Görev Detayları';

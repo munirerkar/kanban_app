@@ -1,8 +1,8 @@
 {
-  "appBarBacklog": "Beklemede",
-  "appBarToDo": "Yapılacak",
-  "appBarInProgress": "Sürüyor",
-  "appBarDone": "Bitti",
+  "appBarBacklog": "Backlog",
+  "appBarToDo": "To Do",
+  "appBarInProgress": "Progress",
+  "appBarDone": "Done",
   "appBarTaskDetails": "Görev Detayları",
   "appBarNSelected": "{count} Seçildi",
   "searchComingSoon": "Arama yakında gelecek!",

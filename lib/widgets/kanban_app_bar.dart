@@ -52,12 +52,10 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   Widget _buildTabItem(String title, int count, ThemeData theme) {
     return Tab(
-      child: Row(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Flexible(child: Text(title, maxLines: 1, overflow: TextOverflow.visible, softWrap: false)),
           if (count > 0) ...[
-            const SizedBox(width: 3),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               decoration: BoxDecoration(
@@ -66,7 +64,9 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
               child: Text("$count", style: TextStyle(fontSize: 10, color: theme.colorScheme.onPrimary, fontWeight: FontWeight.bold)),
             ),
-          ]
+            const SizedBox(width: 2),
+          ],
+          Text(title)
         ],
       ),
     );
@@ -176,4 +176,3 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
     }
   }
 }
-
