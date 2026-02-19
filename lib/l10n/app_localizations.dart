@@ -391,6 +391,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancel'**
   String get cancelButton;
+
+  /// No description provided for @authInvalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Email or password is incorrect.'**
+  String get authInvalidCredentials;
+
+  /// No description provided for @authUnexpectedLoginError.
+  ///
+  /// In en, this message translates to:
+  /// **'An unexpected error occurred during login. Please try again.'**
+  String get authUnexpectedLoginError;
+
+  /// No description provided for @authUnexpectedRegisterError.
+  ///
+  /// In en, this message translates to:
+  /// **'An unexpected error occurred during registration. Please try again.'**
+  String get authUnexpectedRegisterError;
+
+  /// No description provided for @authUnexpectedLogoutError.
+  ///
+  /// In en, this message translates to:
+  /// **'An unexpected error occurred while logging out.'**
+  String get authUnexpectedLogoutError;
+
+  /// No description provided for @authNetworkErrorFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'A network error occurred. Please try again.'**
+  String get authNetworkErrorFallback;
+
+  /// No description provided for @loginWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get loginWelcomeTitle;
+
+  /// No description provided for @loginSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to your Kanban account'**
+  String get loginSubtitle;
+
+  /// No description provided for @loginEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get loginEmailLabel;
+
+  /// No description provided for @loginEmailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Email field cannot be empty'**
+  String get loginEmailRequired;
+
+  /// No description provided for @loginPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get loginPasswordLabel;
+
+  /// No description provided for @loginPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password field cannot be empty'**
+  String get loginPasswordRequired;
+
+  /// No description provided for @loginButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get loginButton;
+
+  /// No description provided for @loginNoAccountCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Don’t have an account? Register'**
+  String get loginNoAccountCta;
+
+  /// No description provided for @registerAppBarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get registerAppBarTitle;
+
+  /// No description provided for @registerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create New Account'**
+  String get registerTitle;
+
+  /// No description provided for @registerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your details to continue'**
+  String get registerSubtitle;
+
+  /// No description provided for @registerFirstNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First Name'**
+  String get registerFirstNameLabel;
+
+  /// No description provided for @registerFirstNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'First name field cannot be empty'**
+  String get registerFirstNameRequired;
+
+  /// No description provided for @registerLastNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Name'**
+  String get registerLastNameLabel;
+
+  /// No description provided for @registerLastNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name field cannot be empty'**
+  String get registerLastNameRequired;
+
+  /// No description provided for @registerEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get registerEmailLabel;
+
+  /// No description provided for @registerEmailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Email field cannot be empty'**
+  String get registerEmailRequired;
+
+  /// No description provided for @registerEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address'**
+  String get registerEmailInvalid;
+
+  /// No description provided for @registerPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get registerPasswordLabel;
+
+  /// No description provided for @registerPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password field cannot be empty'**
+  String get registerPasswordRequired;
+
+  /// No description provided for @registerPasswordMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least {min} characters'**
+  String registerPasswordMinLength(Object min);
+
+  /// No description provided for @registerConfirmPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get registerConfirmPasswordLabel;
+
+  /// No description provided for @registerConfirmPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password field cannot be empty'**
+  String get registerConfirmPasswordRequired;
+
+  /// No description provided for @registerPasswordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get registerPasswordMismatch;
+
+  /// No description provided for @registerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get registerButton;
+
+  /// No description provided for @registerSuccessSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration successful. Logged in.'**
+  String get registerSuccessSnackbar;
 }
 
 class _AppLocalizationsDelegate

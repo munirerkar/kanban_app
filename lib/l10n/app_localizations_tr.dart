@@ -175,4 +175,104 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get cancelButton => 'İptal';
+
+  @override
+  String get authInvalidCredentials => 'E-posta veya şifre hatalı.';
+
+  @override
+  String get authUnexpectedLoginError =>
+      'Giriş sırasında beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.';
+
+  @override
+  String get authUnexpectedRegisterError =>
+      'Kayıt sırasında beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.';
+
+  @override
+  String get authUnexpectedLogoutError =>
+      'Çıkış yapılırken beklenmeyen bir hata oluştu.';
+
+  @override
+  String get authNetworkErrorFallback =>
+      'Ağ hatası oluştu. Lütfen tekrar deneyin.';
+
+  @override
+  String get loginWelcomeTitle => 'Hoş Geldin';
+
+  @override
+  String get loginSubtitle => 'Kanban hesabına giriş yap';
+
+  @override
+  String get loginEmailLabel => 'E-posta';
+
+  @override
+  String get loginEmailRequired => 'E-posta alanı boş bırakılamaz';
+
+  @override
+  String get loginPasswordLabel => 'Şifre';
+
+  @override
+  String get loginPasswordRequired => 'Şifre alanı boş bırakılamaz';
+
+  @override
+  String get loginButton => 'Giriş Yap';
+
+  @override
+  String get loginNoAccountCta => 'Hesabın yok mu? Kayıt Ol';
+
+  @override
+  String get registerAppBarTitle => 'Kayıt Ol';
+
+  @override
+  String get registerTitle => 'Yeni Hesap Oluştur';
+
+  @override
+  String get registerSubtitle => 'Bilgilerini girerek devam et';
+
+  @override
+  String get registerFirstNameLabel => 'İsim';
+
+  @override
+  String get registerFirstNameRequired => 'İsim alanı boş bırakılamaz';
+
+  @override
+  String get registerLastNameLabel => 'Soyisim';
+
+  @override
+  String get registerLastNameRequired => 'Soyisim alanı boş bırakılamaz';
+
+  @override
+  String get registerEmailLabel => 'E-posta';
+
+  @override
+  String get registerEmailRequired => 'E-posta alanı boş bırakılamaz';
+
+  @override
+  String get registerEmailInvalid => 'Geçerli bir e-posta adresi gir';
+
+  @override
+  String get registerPasswordLabel => 'Şifre';
+
+  @override
+  String get registerPasswordRequired => 'Şifre alanı boş bırakılamaz';
+
+  @override
+  String registerPasswordMinLength(Object min) {
+    return 'Şifre en az $min karakter olmalı';
+  }
+
+  @override
+  String get registerConfirmPasswordLabel => 'Şifre Tekrarı';
+
+  @override
+  String get registerConfirmPasswordRequired =>
+      'Şifre tekrarı alanı boş bırakılamaz';
+
+  @override
+  String get registerPasswordMismatch => 'Şifreler eşleşmiyor';
+
+  @override
+  String get registerButton => 'Kayıt Ol';
+
+  @override
+  String get registerSuccessSnackbar => 'Kayıt başarılı. Oturum açıldı.';
 }

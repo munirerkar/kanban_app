@@ -5,7 +5,7 @@ import '../models/task_status.dart';
 import '../viewmodels/task_view_model.dart';
 import '../viewmodels/user_view_model.dart';
 import '../views/settings_view.dart';
-import '../views/task_form_dialog.dart';
+import 'task_form_dialog.dart';
 import 'color_picker_dialog.dart';
 
 class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {

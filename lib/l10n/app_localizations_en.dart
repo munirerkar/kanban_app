@@ -174,4 +174,104 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cancelButton => 'Cancel';
+
+  @override
+  String get authInvalidCredentials => 'Email or password is incorrect.';
+
+  @override
+  String get authUnexpectedLoginError =>
+      'An unexpected error occurred during login. Please try again.';
+
+  @override
+  String get authUnexpectedRegisterError =>
+      'An unexpected error occurred during registration. Please try again.';
+
+  @override
+  String get authUnexpectedLogoutError =>
+      'An unexpected error occurred while logging out.';
+
+  @override
+  String get authNetworkErrorFallback =>
+      'A network error occurred. Please try again.';
+
+  @override
+  String get loginWelcomeTitle => 'Welcome';
+
+  @override
+  String get loginSubtitle => 'Sign in to your Kanban account';
+
+  @override
+  String get loginEmailLabel => 'Email';
+
+  @override
+  String get loginEmailRequired => 'Email field cannot be empty';
+
+  @override
+  String get loginPasswordLabel => 'Password';
+
+  @override
+  String get loginPasswordRequired => 'Password field cannot be empty';
+
+  @override
+  String get loginButton => 'Login';
+
+  @override
+  String get loginNoAccountCta => 'Don’t have an account? Register';
+
+  @override
+  String get registerAppBarTitle => 'Register';
+
+  @override
+  String get registerTitle => 'Create New Account';
+
+  @override
+  String get registerSubtitle => 'Enter your details to continue';
+
+  @override
+  String get registerFirstNameLabel => 'First Name';
+
+  @override
+  String get registerFirstNameRequired => 'First name field cannot be empty';
+
+  @override
+  String get registerLastNameLabel => 'Last Name';
+
+  @override
+  String get registerLastNameRequired => 'Last name field cannot be empty';
+
+  @override
+  String get registerEmailLabel => 'Email';
+
+  @override
+  String get registerEmailRequired => 'Email field cannot be empty';
+
+  @override
+  String get registerEmailInvalid => 'Enter a valid email address';
+
+  @override
+  String get registerPasswordLabel => 'Password';
+
+  @override
+  String get registerPasswordRequired => 'Password field cannot be empty';
+
+  @override
+  String registerPasswordMinLength(Object min) {
+    return 'Password must be at least $min characters';
+  }
+
+  @override
+  String get registerConfirmPasswordLabel => 'Confirm Password';
+
+  @override
+  String get registerConfirmPasswordRequired =>
+      'Confirm password field cannot be empty';
+
+  @override
+  String get registerPasswordMismatch => 'Passwords do not match';
+
+  @override
+  String get registerButton => 'Register';
+
+  @override
+  String get registerSuccessSnackbar => 'Registration successful. Logged in.';
 }

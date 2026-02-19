@@ -1,15 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:kanban_project/core/network/api_client.dart';
 import '../core/app_constants.dart';
 import '../models/user_model.dart';
 
 class UserService {
-  final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: AppConstants.baseUrl,
-      connectTimeout: const Duration(seconds: 5),
-      receiveTimeout: const Duration(seconds: 3),
-    ),
-  );
+  final Dio _dio = ApiClient().dio;
 
   Future<List<User>> getAllUsers() async {
     try {

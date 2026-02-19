@@ -6,10 +6,10 @@ class SettingsViewModel extends ChangeNotifier {
   static const String _localeKey = 'locale';
 
   ThemeMode _themeMode = ThemeMode.system;
-  Locale _locale = const Locale('en');
+  Locale? _locale;
 
   ThemeMode get themeMode => _themeMode;
-  Locale get locale => _locale;
+  Locale? get locale => _locale;
 
   SettingsViewModel() {
     _loadSettings();
@@ -23,8 +23,8 @@ class SettingsViewModel extends ChangeNotifier {
     _themeMode = ThemeMode.values[themeIndex];
 
     // Dil ayarını yükle
-    final languageCode = prefs.getString(_localeKey) ?? 'en';
-    _locale = Locale(languageCode);
+    final languageCode = prefs.getString(_localeKey);
+    _locale = languageCode == null ? null : Locale(languageCode);
 
     notifyListeners();
   }

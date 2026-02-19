@@ -8,7 +8,7 @@ import '../viewmodels/user_view_model.dart';
 import '../widgets/kanban_app_bar.dart';
 import '../widgets/kanban_bottom_bar.dart';
 import '../widgets/task_column.dart';
-import 'task_form_dialog.dart';
+import '../widgets/task_form_dialog.dart';
 
 class AppView extends StatefulWidget {
   const AppView({super.key});

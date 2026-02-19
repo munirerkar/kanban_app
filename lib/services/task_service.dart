@@ -1,17 +1,12 @@
 import 'package:dio/dio.dart';
+import 'package:kanban_project/core/network/api_client.dart';
 import '../core/app_constants.dart';
 import '../models/task_model.dart';
 import '../models/task_status.dart';
 
 class TaskService {
 
-  final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: AppConstants.baseUrl,
-      connectTimeout: const Duration(seconds: 5),
-      receiveTimeout: const Duration(seconds: 3),
-    ),
-  );
+  final Dio _dio = ApiClient().dio;
 
   // Tüm görevleri getir (READ)
   Future<List<Task>> getAllTasks() async {
