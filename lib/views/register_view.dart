@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kanban_project/l10n/app_localizations.dart';
 import 'package:kanban_project/viewmodels/auth_view_model.dart';
+import 'package:kanban_project/views/app_view.dart';
 import 'package:provider/provider.dart';
 
 class RegisterView extends StatefulWidget {
@@ -62,7 +63,10 @@ class _RegisterViewState extends State<RegisterView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.registerSuccessSnackbar)),
       );
-      Navigator.of(context).popUntil((route) => route.isFirst);
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const AppView()),
+        (route) => false,
+      );
       return;
     }
 

@@ -5,7 +5,7 @@ import '../l10n/app_localizations.dart';
 import '../models/task_model.dart';
 import '../models/task_status.dart';
 import '../viewmodels/task_view_model.dart';
-import '../viewmodels/user_view_model.dart';
+import '../viewmodels/workspace_view_model.dart';
 import '../models/user_model.dart';
 
 class TaskFormDialog extends StatefulWidget {
@@ -198,9 +198,11 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
               const SizedBox(height: 12),
 
               // 4. Assignee
-              Consumer<UserViewModel>(
-                builder: (context, userViewModel, child) {
-                  String selectedNames = userViewModel.users
+              Consumer<WorkspaceViewModel>(
+                builder: (context, workspaceViewModel, child) {
+                  final members = workspaceViewModel.workspaceMembers;
+
+                  String selectedNames = members
                       .where((user) => _selectedUserIds.contains(user.id))
                       .map((user) => user.name)
                       .join(", ");
@@ -209,7 +211,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                   if (isAssigneeHint) selectedNames = l10n.formAssigneesHint;
 
                   return GestureDetector(
-                    onTap: () => _showMultiSelectDialog(context, userViewModel.users, l10n, theme),
+                    onTap: () => _showMultiSelectDialog(context, members, l10n, theme),
                     child: _buildDropdownContainer(theme,
                       child: Row(
                         children: [
@@ -361,7 +363,13 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                                 : null,
                           ),
                           const SizedBox(width: 8),
-                          Text(user.name),
+                          Expanded(
+                            child: Text(
+                              user.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ],
                       ),
                       value: isSelected,

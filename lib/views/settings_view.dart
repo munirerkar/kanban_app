@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../viewmodels/settings_view_model.dart';
 import '../l10n/app_localizations.dart';
 
@@ -16,20 +17,34 @@ class SettingsView extends StatelessWidget {
       appBar: AppBar(
         title: Text(l10n.settingsTitle),
       ),
-      body: ListView(
+      body: Column(
         children: [
-          _buildSectionHeader(context, l10n.settingsAppearance),
-          _buildThemeSelector(context, settingsViewModel, l10n),
-          const Divider(),
-          _buildSectionHeader(context, l10n.settingsLanguage),
-          _buildLanguageSelector(context, settingsViewModel, l10n),
-          const Divider(),
-          _buildSectionHeader(context, l10n.settingsAbout),
-          _buildVersionTile(l10n),
-          ListTile(
-            leading: const Icon(Icons.description_outlined),
-            title: Text(l10n.settingsLicenses),
-            onTap: () => showLicensePage(context: context),
+          Expanded(
+            child: ListView(
+              children: [
+                _buildSectionHeader(context, l10n.settingsAppearance),
+                _buildThemeSelector(context, settingsViewModel, l10n),
+                const Divider(),
+                _buildSectionHeader(context, l10n.settingsLanguage),
+                _buildLanguageSelector(context, settingsViewModel, l10n),
+                const Divider(),
+                _buildSectionHeader(context, l10n.settingsAbout),
+                _buildVersionTile(l10n),
+                ListTile(
+                  leading: const Icon(Icons.description_outlined),
+                  title: Text(l10n.settingsLicenses),
+                  onTap: () => showLicensePage(context: context),
+                ),
+              ],
+            ),
+          ),
+          SafeArea(
+            top: false,
+            child: ListTile(
+              leading: const Icon(Icons.coffee_outlined),
+              title: Text(l10n.buyMeACoffee),
+              onTap: () => _openBuyMeACoffee(context),
+            ),
           ),
         ],
       ),
@@ -120,5 +135,24 @@ class SettingsView extends StatelessWidget {
         },
       ),
     );
+  }
+  Future<void> _openBuyMeACoffee(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final uri = Uri.parse('https://buymeacoffee.com/munirerkar');
+
+    try {
+      final opened = await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+      if (!opened) {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (_) {
+      if (!context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.authNetworkErrorFallback)),
+      );
+    }
   }
 }

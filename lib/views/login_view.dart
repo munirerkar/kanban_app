@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:kanban_project/l10n/app_localizations.dart';
 import 'package:kanban_project/viewmodels/auth_view_model.dart';
+import 'package:kanban_project/viewmodels/workspace_view_model.dart';
+import 'package:kanban_project/views/app_view.dart';
 import 'package:kanban_project/views/register_view.dart';
 import 'package:provider/provider.dart';
 
@@ -49,12 +51,19 @@ class _LoginViewState extends State<LoginView> {
 
     if (!mounted) return;
 
-    if (!success) {
-      final message = authViewModel.errorMessage ?? l10n.authInvalidCredentials;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
+    if (success) {
+      await context.read<WorkspaceViewModel>().fetchWorkspaces();
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const AppView()),
       );
+      return;
     }
+
+    final message = authViewModel.errorMessage ?? l10n.authInvalidCredentials;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override

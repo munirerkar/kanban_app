@@ -17,8 +17,8 @@ class UserViewModel extends ChangeNotifier {
 
     try {
       _users = await _userService.getAllUsers();
-    } catch (e) {
-      print("User pull error: $e");
+    } catch (_) {
+      _users = [];
     } finally {
       _isLoading = false;
       notifyListeners();

@@ -359,7 +359,7 @@ abstract class AppLocalizations {
   /// No description provided for @buyMeACoffee.
   ///
   /// In en, this message translates to:
-  /// **'Buy me a coffee ☕'**
+  /// **'Buy me a coffee'**
   String get buyMeACoffee;
 
   /// No description provided for @searchHint.
@@ -577,6 +577,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Registration successful. Logged in.'**
   String get registerSuccessSnackbar;
+
+  /// No description provided for @profileAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get profileAccountTitle;
+
+  /// No description provided for @profileLogoutButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get profileLogoutButton;
+
+  /// No description provided for @profileUnknownName.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown User'**
+  String get profileUnknownName;
+
+  /// No description provided for @profileUnknownEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email not available'**
+  String get profileUnknownEmail;
+
+  /// No description provided for @workspaceDrawerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Workspaces'**
+  String get workspaceDrawerTitle;
+
+  /// No description provided for @workspaceDrawerNoWorkspaces.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no workspace available for your account yet'**
+  String get workspaceDrawerNoWorkspaces;
 }
 
 class _AppLocalizationsDelegate

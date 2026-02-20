@@ -157,7 +157,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settingsLicenses => 'Lisanslar';
 
   @override
-  String get buyMeACoffee => 'Bana bir kahve ısmarla ☕';
+  String get buyMeACoffee => 'Bana bir kahve ısmarla';
 
   @override
   String get searchHint => 'Görev ara...';
@@ -275,4 +275,23 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get registerSuccessSnackbar => 'Kayıt başarılı. Oturum açıldı.';
+
+  @override
+  String get profileAccountTitle => 'Hesap';
+
+  @override
+  String get profileLogoutButton => 'Çıkış Yap';
+
+  @override
+  String get profileUnknownName => 'Bilinmeyen Kullanıcı';
+
+  @override
+  String get profileUnknownEmail => 'E-posta bilgisi yok';
+
+  @override
+  String get workspaceDrawerTitle => 'Çalışma Alanları';
+
+  @override
+  String get workspaceDrawerNoWorkspaces =>
+      'Henüz erişebildiğiniz bir çalışma alanı bulunmuyor';
 }

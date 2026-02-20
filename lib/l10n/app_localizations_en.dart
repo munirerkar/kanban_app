@@ -156,7 +156,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLicenses => 'Licenses';
 
   @override
-  String get buyMeACoffee => 'Buy me a coffee ☕';
+  String get buyMeACoffee => 'Buy me a coffee';
 
   @override
   String get searchHint => 'Search tasks...';
@@ -274,4 +274,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get registerSuccessSnackbar => 'Registration successful. Logged in.';
+
+  @override
+  String get profileAccountTitle => 'Account';
+
+  @override
+  String get profileLogoutButton => 'Logout';
+
+  @override
+  String get profileUnknownName => 'Unknown User';
+
+  @override
+  String get profileUnknownEmail => 'Email not available';
+
+  @override
+  String get workspaceDrawerTitle => 'Workspaces';
+
+  @override
+  String get workspaceDrawerNoWorkspaces =>
+      'There is no workspace available for your account yet';
 }

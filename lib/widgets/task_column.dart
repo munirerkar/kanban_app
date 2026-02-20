@@ -5,7 +5,8 @@ import '../l10n/app_localizations.dart';
 import '../models/task_model.dart';
 import '../models/task_status.dart';
 import '../viewmodels/task_view_model.dart';
-import '../viewmodels/user_view_model.dart';
+import '../models/user_model.dart';
+import '../viewmodels/workspace_view_model.dart';
 
 class TaskColumn extends StatelessWidget {
   final TaskStatus status;
@@ -14,10 +15,10 @@ class TaskColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<TaskViewModel, UserViewModel>(
-      builder: (context, taskViewModel, userViewModel, child) {
-
-        final tasks = taskViewModel.getTasksByStatus(status, userViewModel.users); // Pass users to the filter
+    return Consumer2<TaskViewModel, WorkspaceViewModel>(
+      builder: (context, taskViewModel, workspaceViewModel, child) {
+        final members = workspaceViewModel.workspaceMembers;
+        final tasks = taskViewModel.getTasksByStatus(status, members);
 
         return RefreshIndicator(
           onRefresh: () async {
@@ -29,13 +30,13 @@ class TaskColumn extends StatelessWidget {
               .of(context)
               .primaryColor,
 
-          child: _buildBody(context, taskViewModel, userViewModel, tasks),
+          child: _buildBody(context, taskViewModel, members, tasks),
         );
       },
     );
   }
 
-  Widget _buildBody(BuildContext context, TaskViewModel taskViewModel, UserViewModel userViewModel,List<Task> tasks) {
+  Widget _buildBody(BuildContext context, TaskViewModel taskViewModel, List<User> members, List<Task> tasks) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
@@ -129,7 +130,7 @@ class TaskColumn extends StatelessWidget {
       onReorder: (oldIndex, newIndex) {
         if (taskViewModel.isSearchMode) return; // Arama modunda sıralamaya izin verme
         if (oldIndex < newIndex) newIndex -= 1;
-        taskViewModel.reorderLocalTasks(status, oldIndex, newIndex);
+        taskViewModel.reorderLocalTasks(context, status, oldIndex, newIndex);
       },
       itemBuilder: (context, index) {
         final task = tasks[index];
@@ -147,7 +148,7 @@ class TaskColumn extends StatelessWidget {
 
         // GÖREVE ATANAN KULLANICILARI BULMA
         // Görevin içindeki ID'lerle eşleşen kullanıcıları listele
-        final taskAssignees = userViewModel.users
+        final taskAssignees = members
             .where((user) => task.assigneeIds.contains(user.id))
             .toList();
 

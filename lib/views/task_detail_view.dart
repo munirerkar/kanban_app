@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/task_model.dart';
-import '../viewmodels/user_view_model.dart';
+import '../viewmodels/workspace_view_model.dart';
 
 class TaskDetailView extends StatelessWidget {
   final Task task;
@@ -22,8 +22,8 @@ class TaskDetailView extends StatelessWidget {
       formattedDate = DateFormat('dd.MM.yyyy').format(date);
     } catch (_) {}
 
-    final userViewModel = context.watch<UserViewModel>();
-    final assignees = userViewModel.users
+    final workspaceViewModel = context.watch<WorkspaceViewModel>();
+    final assignees = workspaceViewModel.workspaceMembers
         .where((user) => task.assigneeIds.contains(user.id))
         .toList();
 

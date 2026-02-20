@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/task_status.dart';
 import '../viewmodels/task_view_model.dart';
-import '../viewmodels/user_view_model.dart';
+import '../viewmodels/workspace_view_model.dart';
 import '../views/settings_view.dart';
 import 'task_form_dialog.dart';
 import 'color_picker_dialog.dart';
@@ -17,7 +17,8 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final taskViewModel = context.watch<TaskViewModel>();
-    final userViewModel = context.watch<UserViewModel>(); // UserViewModel'i de dinle
+    final workspaceViewModel = context.watch<WorkspaceViewModel>();
+    final workspaceMembers = workspaceViewModel.workspaceMembers;
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
@@ -26,6 +27,7 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
           ? Colors.grey[900]
           : theme.colorScheme.primary,
       foregroundColor: theme.colorScheme.onPrimary,
+      automaticallyImplyLeading: false,
       leading: _buildLeading(context, taskViewModel),
       title: _buildTitle(context, taskViewModel),
       actions: _buildActions(context, taskViewModel),
@@ -41,10 +43,10 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
         unselectedLabelColor: theme.colorScheme.onPrimary.withOpacity(0.7),
         labelStyle: const TextStyle(fontWeight: FontWeight.bold),
         tabs: [
-          _buildTabItem(l10n.appBarBacklog, taskViewModel.getTasksByStatus(TaskStatus.BACKLOG, userViewModel.users).length, theme),
-          _buildTabItem(l10n.appBarToDo, taskViewModel.getTasksByStatus(TaskStatus.TODO, userViewModel.users).length, theme),
-          _buildTabItem(l10n.appBarInProgress, taskViewModel.getTasksByStatus(TaskStatus.IN_PROGRESS, userViewModel.users).length, theme),
-          _buildTabItem(l10n.appBarDone, taskViewModel.getTasksByStatus(TaskStatus.DONE, userViewModel.users).length, theme),
+          _buildTabItem(l10n.appBarBacklog, taskViewModel.getTasksByStatus(TaskStatus.BACKLOG, workspaceMembers).length, theme),
+          _buildTabItem(l10n.appBarToDo, taskViewModel.getTasksByStatus(TaskStatus.TODO, workspaceMembers).length, theme),
+          _buildTabItem(l10n.appBarInProgress, taskViewModel.getTasksByStatus(TaskStatus.IN_PROGRESS, workspaceMembers).length, theme),
+          _buildTabItem(l10n.appBarDone, taskViewModel.getTasksByStatus(TaskStatus.DONE, workspaceMembers).length, theme),
         ],
       ),
     );
@@ -103,12 +105,43 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
     } else if (viewModel.isSelectionMode) {
       return Text(l10n.appBarNSelected(viewModel.selectedTaskIds.length));
     } else {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset('assets/images/kanban_logo.png', height: 60, width: 60, fit: BoxFit.contain),
-          Text("KANBAN", style: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.w400, fontSize: 30, letterSpacing: 1.2)),
-        ],
+      return Builder(
+        builder: (context) {
+          return InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () => Scaffold.of(context).openDrawer(),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'assets/images/kanban_logo.png',
+                  height: 60,
+                  width: 60,
+                  fit: BoxFit.contain,
+                ),
+                Flexible(
+                  child: Consumer<WorkspaceViewModel>(
+                    builder: (context, workspaceViewModel, child) {
+                      final workspaceName = workspaceViewModel.currentWorkspace?.name ?? l10n.workspaceDrawerTitle;
+
+                      return Text(
+                        workspaceName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 24,
+                          letterSpacing: 0.3,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       );
     }
   }

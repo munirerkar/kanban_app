@@ -42,7 +42,7 @@
   "settingsLanguageTurkish": "Türkçe",
   "settingsVersion": "Sürüm",
   "settingsLicenses": "Lisanslar",
-  "buyMeACoffee": "Bana bir kahve ısmarla ☕",
+  "buyMeACoffee": "Bana bir kahve ısmarla",
   "searchHint": "Görev ara...",
   "deleteConfirmationTitle": "Silmeyi Onayla",
   "deleteConfirmationMessage": "Seçili {count} görevi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
@@ -78,5 +78,11 @@
   "registerConfirmPasswordRequired": "Şifre tekrarı alanı boş bırakılamaz",
   "registerPasswordMismatch": "Şifreler eşleşmiyor",
   "registerButton": "Kayıt Ol",
-  "registerSuccessSnackbar": "Kayıt başarılı. Oturum açıldı."
+  "registerSuccessSnackbar": "Kayıt başarılı. Oturum açıldı.",
+  "profileAccountTitle": "Hesap",
+  "profileLogoutButton": "Çıkış Yap",
+  "profileUnknownName": "Bilinmeyen Kullanıcı",
+  "profileUnknownEmail": "E-posta bilgisi yok",
+  "workspaceDrawerTitle": "Çalışma Alanları",
+  "workspaceDrawerNoWorkspaces": "Henüz erişebildiğiniz bir çalışma alanı bulunmuyor"
 }

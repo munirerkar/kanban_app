@@ -42,7 +42,7 @@
   "settingsLanguageTurkish": "Turkish",
   "settingsVersion": "Version",
   "settingsLicenses": "Licenses",
-  "buyMeACoffee": "Buy me a coffee ☕",
+  "buyMeACoffee": "Buy me a coffee",
   "searchHint": "Search tasks...",
   "deleteConfirmationTitle": "Confirm Deletion",
   "deleteConfirmationMessage": "Are you sure you want to delete {count} selected tasks? This action cannot be undone.",
@@ -78,5 +78,11 @@
   "registerConfirmPasswordRequired": "Confirm password field cannot be empty",
   "registerPasswordMismatch": "Passwords do not match",
   "registerButton": "Register",
-  "registerSuccessSnackbar": "Registration successful. Logged in."
+  "registerSuccessSnackbar": "Registration successful. Logged in.",
+  "profileAccountTitle": "Account",
+  "profileLogoutButton": "Logout",
+  "profileUnknownName": "Unknown User",
+  "profileUnknownEmail": "Email not available",
+  "workspaceDrawerTitle": "Workspaces",
+  "workspaceDrawerNoWorkspaces": "There is no workspace available for your account yet"
 }

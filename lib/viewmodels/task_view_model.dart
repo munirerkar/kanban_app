@@ -12,6 +12,7 @@ class TaskViewModel extends ChangeNotifier {
   List<Task> _tasks = [];
   bool _isLoading = false;
   String? _errorMessage;
+  int? _currentWorkspaceId;
 
   // --- ARAMA DURUMU (SEARCH STATE) ---
   bool _isSearchMode = false;
@@ -28,6 +29,7 @@ class TaskViewModel extends ChangeNotifier {
   bool get isSearchMode => _isSearchMode;
   bool get isSelectionMode => _isSelectionMode;
   Set<int> get selectedTaskIds => _selectedTaskIds;
+  int? get currentWorkspaceId => _currentWorkspaceId;
 
   List<Task> getTasksByStatus(TaskStatus status, List<User> allUsers) {
     // Önce statüye göre filtrele
@@ -78,14 +80,41 @@ class TaskViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> setCurrentWorkspaceId(
+    int? workspaceId, {
+    bool fetch = false,
+    BuildContext? context,
+  }) async {
+    final changed = _currentWorkspaceId != workspaceId;
+    _currentWorkspaceId = workspaceId;
+
+    if (changed) {
+      _tasks = [];
+      _errorMessage = null;
+      notifyListeners();
+    }
+
+    if (fetch && context != null) {
+      await fetchTasks(context);
+    }
+  }
+
   // Backend'den Verileri Çek
   Future<void> fetchTasks(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
+
+    if (_currentWorkspaceId == null) {
+      _tasks = [];
+      _errorMessage = l10n.workspaceDrawerNoWorkspaces;
+      notifyListeners();
+      return;
+    }
+
     _setLoading(true);
     _errorMessage = null;
 
     try {
-      _tasks = await _taskService.getAllTasks();
+      _tasks = await _taskService.getAllTasks(workspaceId: _currentWorkspaceId!);
     } catch (e) {
       _errorMessage = l10n.viewModelAnErrorOccurredWhileLoadingTasks(e.toString());
     } finally {
@@ -106,7 +135,15 @@ class TaskViewModel extends ChangeNotifier {
         color: color,
         assigneeIds: assigneeIds,
       );
-      final createdTask = await _taskService.createTask(newTask);
+      if (_currentWorkspaceId == null) {
+        _errorMessage = l10n.workspaceDrawerNoWorkspaces;
+        return;
+      }
+
+      final createdTask = await _taskService.createTask(
+        workspaceId: _currentWorkspaceId!,
+        task: newTask,
+      );
       _tasks.add(createdTask);
       notifyListeners();
     } catch (e) {
@@ -136,7 +173,17 @@ class TaskViewModel extends ChangeNotifier {
 
     // 2. Backend'e isteği gönder
     try {
-      await _taskService.updateTaskStatus(task.id!, newStatus);
+      if (_currentWorkspaceId == null) {
+        _errorMessage = l10n.workspaceDrawerNoWorkspaces;
+        notifyListeners();
+        return;
+      }
+
+      await _taskService.updateTaskStatus(
+        workspaceId: _currentWorkspaceId!,
+        taskId: task.id!,
+        newStatus: newStatus,
+      );
     } catch (e) {
       // Hata olursa değişikliği geri al!
       if (taskIndex != -1) {
@@ -152,7 +199,15 @@ class TaskViewModel extends ChangeNotifier {
     final l10n = AppLocalizations.of(context)!;
     _setLoading(true);
     try {
-      final updatedTask = await _taskService.updateTask(task);
+      if (_currentWorkspaceId == null) {
+        _errorMessage = l10n.workspaceDrawerNoWorkspaces;
+        return;
+      }
+
+      final updatedTask = await _taskService.updateTask(
+        workspaceId: _currentWorkspaceId!,
+        task: task,
+      );
 
       // Listeden eskini bul, yenisiyle değiştir
       final index = _tasks.indexWhere((t) => t.id == task.id);
@@ -175,7 +230,12 @@ class TaskViewModel extends ChangeNotifier {
     final l10n = AppLocalizations.of(context)!;
     _setLoading(true);
     try {
-      await _taskService.deleteTask(id);
+      if (_currentWorkspaceId == null) {
+        _errorMessage = l10n.workspaceDrawerNoWorkspaces;
+        return;
+      }
+
+      await _taskService.deleteTask(workspaceId: _currentWorkspaceId!, id: id);
 
       // Listeden sil
       _tasks.removeWhere((t) => t.id == id);
@@ -223,7 +283,12 @@ class TaskViewModel extends ChangeNotifier {
       // Backend'e tek tek silme isteği at (Veya backend'de toplu silme varsa o kullanılır)
       // Şimdilik döngüyle siliyoruz:
       for (int id in _selectedTaskIds) {
-        await _taskService.deleteTask(id);
+        if (_currentWorkspaceId == null) {
+          _errorMessage = l10n.workspaceDrawerNoWorkspaces;
+          notifyListeners();
+          return;
+        }
+        await _taskService.deleteTask(workspaceId: _currentWorkspaceId!, id: id);
         _tasks.removeWhere((t) => t.id == id);
       }
 
@@ -255,7 +320,7 @@ class TaskViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void reorderLocalTasks(TaskStatus status, int oldIndex, int newIndex) {
+  void reorderLocalTasks(BuildContext context, TaskStatus status, int oldIndex, int newIndex) {
     // Build the list of tasks in the given status without mutating _tasks yet
     final tasksInStatus = _tasks.where((t) => t.status == status).toList();
     // Ensure favorites stay on top: split into fav and others
@@ -303,9 +368,18 @@ class TaskViewModel extends ChangeNotifier {
             'favorite': t.favorite,
           }).toList();
 
-      _taskService.reorderTasks(List<Map<String, dynamic>>.from(orders));
+      if (_currentWorkspaceId == null) {
+        _errorMessage = AppLocalizations.of(context)!.workspaceDrawerNoWorkspaces;
+        notifyListeners();
+        return;
+      }
+
+      _taskService.reorderTasks(
+        workspaceId: _currentWorkspaceId!,
+        orders: List<Map<String, dynamic>>.from(orders),
+      );
     } catch (e) {
-      _errorMessage = 'Sıralama kaydedilemedi: $e';
+      _errorMessage = AppLocalizations.of(context)!.viewModelUpdateFailed(e.toString());
       notifyListeners();
     }
   }
@@ -357,7 +431,16 @@ class TaskViewModel extends ChangeNotifier {
             'status': t.status.toShortString,
             'favorite': t.favorite,
           }).toList();
-      await _taskService.reorderTasks(List<Map<String, dynamic>>.from(orders));
+      if (_currentWorkspaceId == null) {
+        _errorMessage = l10n.workspaceDrawerNoWorkspaces;
+        notifyListeners();
+        return;
+      }
+
+      await _taskService.reorderTasks(
+        workspaceId: _currentWorkspaceId!,
+        orders: List<Map<String, dynamic>>.from(orders),
+      );
     } catch (e) {
       _errorMessage = l10n.viewModelUpdateFailed(e.toString());
       // NOTE: A rollback mechanism would be ideal here, but is complex.
@@ -384,7 +467,13 @@ class TaskViewModel extends ChangeNotifier {
       // Persist changes one by one
       for (int id in _selectedTaskIds) {
         final task = _tasks.firstWhere((t) => t.id == id);
-        await _taskService.updateTask(task);
+        if (_currentWorkspaceId == null) {
+          _errorMessage = l10n.workspaceDrawerNoWorkspaces;
+          notifyListeners();
+          return;
+        }
+
+        await _taskService.updateTask(workspaceId: _currentWorkspaceId!, task: task);
       }
 
       // Clean up selection mode
@@ -412,7 +501,17 @@ class TaskViewModel extends ChangeNotifier {
 
     try {
       for (int id in _selectedTaskIds) {
-        await _taskService.setFavorite(id!, favorite);
+        if (_currentWorkspaceId == null) {
+          _errorMessage = l10n.workspaceDrawerNoWorkspaces;
+          notifyListeners();
+          return;
+        }
+
+        await _taskService.setFavorite(
+          workspaceId: _currentWorkspaceId!,
+          taskId: id,
+          favorite: favorite,
+        );
       }
       // After favorites changed, re-fetch to get ordering consistent from backend
       await fetchTasks(context);

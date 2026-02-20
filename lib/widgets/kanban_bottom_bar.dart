@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../l10n/app_localizations.dart';
 
 class KanbanBottomBar extends StatelessWidget {
-  final VoidCallback onHomePressed;
+  final int selectedIndex;
+  final VoidCallback onTasksPressed;
+  final VoidCallback onProfilePressed;
 
-  const KanbanBottomBar({super.key, required this.onHomePressed});
-
-  Future<void> _launchURL() async {
-    final Uri url = Uri.parse('https://buymeacoffee.com/munirerkar');
-    if (!await launchUrl(url)) {
-      // TODO: Handle the error
-    }
-  }
+  const KanbanBottomBar({
+    super.key,
+    required this.selectedIndex,
+    required this.onTasksPressed,
+    required this.onProfilePressed,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
+
+    final Color selectedColor = theme.colorScheme.onPrimary;
+    final Color unselectedColor = theme.colorScheme.onPrimary.withValues(alpha: 0.75);
 
     return BottomAppBar(
       color: theme.colorScheme.primary,
@@ -31,20 +31,21 @@ class KanbanBottomBar extends StatelessWidget {
         child: Row(
           children: <Widget>[
             IconButton(
-              icon: Icon(Icons.home_outlined, color: theme.colorScheme.onPrimary, size: 32),
-              onPressed: onHomePressed, // Use the passed callback
+              icon: Icon(
+                Icons.home_outlined,
+                color: selectedIndex == 0 ? selectedColor : unselectedColor,
+                size: 30,
+              ),
+              onPressed: onTasksPressed,
             ),
             const Spacer(),
-            TextButton(
-              onPressed: _launchURL,
-              child: Text(
-                l10n.buyMeACoffee,
-                style: TextStyle(
-                  color: theme.colorScheme.onPrimary,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 16,
-                ),
+            IconButton(
+              icon: Icon(
+                Icons.person_outline,
+                color: selectedIndex == 1 ? selectedColor : unselectedColor,
+                size: 30,
               ),
+              onPressed: onProfilePressed,
             ),
           ],
         ),
