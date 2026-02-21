@@ -84,5 +84,13 @@
   "profileUnknownName": "Bilinmeyen Kullanıcı",
   "profileUnknownEmail": "E-posta bilgisi yok",
   "workspaceDrawerTitle": "Çalışma Alanları",
-  "workspaceDrawerNoWorkspaces": "Henüz erişebildiğiniz bir çalışma alanı bulunmuyor"
+  "workspaceDrawerNoWorkspaces": "Henüz erişebildiğiniz bir çalışma alanı bulunmuyor",
+  "workspaceDrawerMyWorkspaces": "Çalışma Alanlarım",
+  "workspaceDrawerSharedWithMe": "Benimle Paylaşılanlar",
+  "workspaceActionEdit": "Düzenle",
+  "workspaceActionDelete": "Sil",
+  "workspaceActionLeave": "Ayrıl",
+  "workspaceOwnerLabel": "Sahibi: {ownerName}",
+  "workspaceDeleteConfirmationMessage": "\"{workspaceName}\" çalışma alanını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+  "workspaceLeaveConfirmationMessage": "\"{workspaceName}\" çalışma alanından ayrılmak istediğinizden emin misiniz?"
 }

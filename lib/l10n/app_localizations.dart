@@ -613,6 +613,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'There is no workspace available for your account yet'**
   String get workspaceDrawerNoWorkspaces;
+
+  /// No description provided for @workspaceDrawerMyWorkspaces.
+  ///
+  /// In en, this message translates to:
+  /// **'My Workspaces'**
+  String get workspaceDrawerMyWorkspaces;
+
+  /// No description provided for @workspaceDrawerSharedWithMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared with Me'**
+  String get workspaceDrawerSharedWithMe;
+
+  /// No description provided for @workspaceActionEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get workspaceActionEdit;
+
+  /// No description provided for @workspaceActionDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get workspaceActionDelete;
+
+  /// No description provided for @workspaceActionLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get workspaceActionLeave;
+
+  /// No description provided for @workspaceOwnerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner: {ownerName}'**
+  String workspaceOwnerLabel(Object ownerName);
+
+  /// No description provided for @workspaceDeleteConfirmationMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete workspace \"{workspaceName}\"? This action cannot be undone.'**
+  String workspaceDeleteConfirmationMessage(Object workspaceName);
+
+  /// No description provided for @workspaceLeaveConfirmationMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to leave workspace \"{workspaceName}\"?'**
+  String workspaceLeaveConfirmationMessage(Object workspaceName);
 }
 
 class _AppLocalizationsDelegate

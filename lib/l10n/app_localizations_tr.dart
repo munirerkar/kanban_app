@@ -294,4 +294,34 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get workspaceDrawerNoWorkspaces =>
       'Henüz erişebildiğiniz bir çalışma alanı bulunmuyor';
+
+  @override
+  String get workspaceDrawerMyWorkspaces => 'Çalışma Alanlarım';
+
+  @override
+  String get workspaceDrawerSharedWithMe => 'Benimle Paylaşılanlar';
+
+  @override
+  String get workspaceActionEdit => 'Düzenle';
+
+  @override
+  String get workspaceActionDelete => 'Sil';
+
+  @override
+  String get workspaceActionLeave => 'Ayrıl';
+
+  @override
+  String workspaceOwnerLabel(Object ownerName) {
+    return 'Sahibi: $ownerName';
+  }
+
+  @override
+  String workspaceDeleteConfirmationMessage(Object workspaceName) {
+    return '\"$workspaceName\" çalışma alanını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.';
+  }
+
+  @override
+  String workspaceLeaveConfirmationMessage(Object workspaceName) {
+    return '\"$workspaceName\" çalışma alanından ayrılmak istediğinizden emin misiniz?';
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:kanban_project/core/app_constants.dart';
 import 'package:kanban_project/core/network/api_client.dart';
 import 'package:kanban_project/models/task_model.dart';
 import 'package:kanban_project/models/task_status.dart';
@@ -6,11 +7,11 @@ import 'package:kanban_project/models/task_status.dart';
 class TaskService {
   final Dio _dio = ApiClient().dio;
 
-  String _tasksBasePath(int workspaceId) => '/workspaces/$workspaceId/tasks';
-
   Future<List<Task>> getAllTasks({required int workspaceId}) async {
     try {
-      final response = await _dio.get(_tasksBasePath(workspaceId));
+      final response = await _dio.get(
+        AppConstants.workspaceTasksEndpoint(workspaceId),
+      );
 
       if (response.statusCode == 200 && response.data is List) {
         final data = response.data as List<dynamic>;
@@ -34,7 +35,7 @@ class TaskService {
   }) async {
     try {
       final response = await _dio.post(
-        _tasksBasePath(workspaceId),
+        AppConstants.workspaceTasksEndpoint(workspaceId),
         data: {
           'title': task.title,
           'description': task.description,
@@ -63,7 +64,7 @@ class TaskService {
   }) async {
     try {
       await _dio.patch(
-        '${_tasksBasePath(workspaceId)}/$taskId/status',
+        '${AppConstants.workspaceTasksEndpoint(workspaceId)}/$taskId/status',
         queryParameters: {'status': newStatus.name},
       );
     } on DioException catch (e) {
@@ -79,7 +80,7 @@ class TaskService {
   }) async {
     try {
       final response = await _dio.put(
-        '${_tasksBasePath(workspaceId)}/${task.id}',
+        '${AppConstants.workspaceTasksEndpoint(workspaceId)}/${task.id}',
         data: task.toJson(),
       );
 
@@ -102,7 +103,7 @@ class TaskService {
   }) async {
     try {
       await _dio.patch(
-        '${_tasksBasePath(workspaceId)}/$taskId/favorite',
+        '${AppConstants.workspaceTasksEndpoint(workspaceId)}/$taskId/favorite',
         queryParameters: {'favorite': favorite},
       );
     } on DioException catch (e) {
@@ -117,7 +118,7 @@ class TaskService {
     required int id,
   }) async {
     try {
-      await _dio.delete('${_tasksBasePath(workspaceId)}/$id');
+      await _dio.delete('${AppConstants.workspaceTasksEndpoint(workspaceId)}/$id');
     } on DioException catch (e) {
       throw Exception(_extractMessage(e) ?? 'Network error while deleting task');
     } catch (e) {
@@ -130,7 +131,10 @@ class TaskService {
     required List<Map<String, dynamic>> orders,
   }) async {
     try {
-      await _dio.patch('${_tasksBasePath(workspaceId)}/reorder', data: orders);
+      await _dio.patch(
+        '${AppConstants.workspaceTasksEndpoint(workspaceId)}/reorder',
+        data: orders,
+      );
     } on DioException catch (e) {
       throw Exception(_extractMessage(e) ?? 'Network error while reordering tasks');
     } catch (e) {

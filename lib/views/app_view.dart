@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:kanban_project/l10n/app_localizations.dart';
+import 'package:kanban_project/models/workspace_model.dart';
 import 'package:kanban_project/viewmodels/auth_view_model.dart';
 import 'package:kanban_project/viewmodels/workspace_view_model.dart';
 import 'package:kanban_project/views/profile_view.dart';
 import 'package:kanban_project/views/task_detail_view.dart';
+import 'package:kanban_project/widgets/dynamic_app_bar.dart';
+import 'package:kanban_project/widgets/kanban_bottom_bar.dart';
+import 'package:kanban_project/widgets/task_column.dart';
+import 'package:kanban_project/widgets/task_form_dialog.dart';
+import 'package:kanban_project/widgets/workspace_drawer.dart';
 import 'package:provider/provider.dart';
+
 import '../models/task_status.dart';
 import '../viewmodels/task_view_model.dart';
-import '../widgets/kanban_app_bar.dart';
-import '../widgets/kanban_bottom_bar.dart';
-import '../widgets/task_column.dart';
-import '../widgets/task_form_dialog.dart';
 
 class AppView extends StatefulWidget {
   const AppView({super.key});
@@ -25,7 +28,7 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    // Verileri çek
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final authViewModel = context.read<AuthViewModel>();
       final workspaceViewModel = context.read<WorkspaceViewModel>();
@@ -34,6 +37,8 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
 
       await authViewModel.refreshCurrentUser();
       if (!mounted) return;
+
+      workspaceViewModel.setCurrentUser(authViewModel.currentUser);
 
       await workspaceViewModel.fetchWorkspaces();
       if (!mounted) return;
@@ -61,164 +66,44 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
     });
   }
 
-  PreferredSizeWidget _buildDynamicAppBar(BuildContext context) {
-    if (_selectedIndex == 0) {
-      return const KanbanAppBar();
+  Future<void> _syncCurrentWorkspaceTasks(BuildContext context) async {
+    final workspaceViewModel = context.read<WorkspaceViewModel>();
+    final taskViewModel = context.read<TaskViewModel>();
+    final l10n = AppLocalizations.of(context)!;
+
+    await workspaceViewModel.fetchWorkspaceMembers(
+      workspaceViewModel.currentWorkspace?.id,
+    );
+    if (!context.mounted) {
+      return;
     }
 
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-
-    return AppBar(
-      backgroundColor: theme.colorScheme.primary,
-      foregroundColor: theme.colorScheme.onPrimary,
-      automaticallyImplyLeading: false,
-      titleSpacing: 16,
-      title: Text(
-        l10n.profileAccountTitle,
-        style: theme.textTheme.titleLarge?.copyWith(
-          color: theme.colorScheme.onPrimary,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+    await taskViewModel.setCurrentWorkspaceId(
+      workspaceViewModel.currentWorkspace?.id,
+      fetch: true,
+      l10n: l10n,
     );
   }
 
-  Widget _buildWorkspaceDrawer(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
+  Future<void> _handleWorkspaceSelected(Workspace workspace) async {
+    final workspaceViewModel = context.read<WorkspaceViewModel>();
 
-    return Drawer(
-      child: SafeArea(
-        child: Consumer<WorkspaceViewModel>(
-          builder: (context, workspaceViewModel, child) {
-            final workspaces = workspaceViewModel.workspaces;
-            final currentWorkspace = workspaceViewModel.currentWorkspace;
+    await workspaceViewModel.selectWorkspace(workspace);
+    if (!mounted) {
+      return;
+    }
 
-            return Column(
-              children: [
-                DrawerHeader(
-                  margin: EdgeInsets.zero,
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.dashboard_customize_outlined,
-                        size: 32,
-                        color: theme.colorScheme.primary,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          l10n.workspaceDrawerTitle,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (workspaceViewModel.isLoading && workspaces.isEmpty)
-                  const Expanded(
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  )
-                else if (workspaces.isEmpty)
-                  Expanded(
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          workspaceViewModel.errorMessage ?? l10n.workspaceDrawerNoWorkspaces,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                else
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border(
-                          top: BorderSide(
-                            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.6),
-                          ),
-                        ),
-                      ),
-                      child: ClipRect(
-                        child: ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(8, 12, 8, 12),
-                          itemCount: workspaces.length,
-                          itemBuilder: (context, index) {
-                            final workspace = workspaces[index];
-                            final isSelected = currentWorkspace?.id == workspace.id;
+    await _syncCurrentWorkspaceTasks(context);
 
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 2),
-                              child: Material(
-                                color: isSelected
-                                    ? theme.colorScheme.primaryContainer.withValues(alpha: 0.45)
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(10),
-                                clipBehavior: Clip.antiAlias,
-                                child: ListTile(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  selected: isSelected,
-                                  title: Text(
-                                    workspace.name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  subtitle: (workspace.description != null && workspace.description!.trim().isNotEmpty)
-                                      ? Text(
-                                          workspace.description!,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        )
-                                      : null,
-                                  trailing: isSelected
-                                      ? Icon(
-                                          Icons.check_circle,
-                                          color: theme.colorScheme.primary,
-                                        )
-                                      : null,
-                                  onTap: () async {
-                                    final workspaceViewModel = context.read<WorkspaceViewModel>();
-                                    final taskViewModel = context.read<TaskViewModel>();
-                                    final l10n = AppLocalizations.of(context)!;
+    if (!mounted) {
+      return;
+    }
 
-                                    workspaceViewModel.selectWorkspace(workspace);
-                                    await workspaceViewModel.fetchWorkspaceMembers(workspace.id);
-                                    if (!context.mounted) return;
+    Navigator.pop(context);
+  }
 
-                                    await taskViewModel.setCurrentWorkspaceId(
-                                      workspace.id,
-                                      fetch: true,
-                                      l10n: l10n,
-                                    );
-                                    if (!context.mounted) return;
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
+  Future<void> _handleWorkspaceUpdated() async {
+    await _syncCurrentWorkspaceTasks(context);
   }
 
   @override
@@ -246,8 +131,11 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
               }
             },
             child: Scaffold(
-              appBar: _buildDynamicAppBar(context),
-              drawer: _buildWorkspaceDrawer(context),
+              appBar: DynamicAppBar(selectedIndex: _selectedIndex),
+              drawer: WorkspaceDrawer(
+                onWorkspaceSelected: _handleWorkspaceSelected,
+                onWorkspaceUpdated: _handleWorkspaceUpdated,
+              ),
               body: IndexedStack(
                 index: _selectedIndex,
                 children: [
@@ -270,7 +158,11 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
                               builder: (BuildContext context) {
                                 return AlertDialog(
                                   title: Text(l10n.deleteConfirmationTitle),
-                                  content: Text(l10n.deleteConfirmationMessage(taskViewModel.selectedTaskIds.length)),
+                                  content: Text(
+                                    l10n.deleteConfirmationMessage(
+                                      taskViewModel.selectedTaskIds.length,
+                                    ),
+                                  ),
                                   actions: <Widget>[
                                     TextButton(
                                       onPressed: () => Navigator.of(context).pop(false),
@@ -280,7 +172,9 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
                                       onPressed: () => Navigator.of(context).pop(true),
                                       child: Text(
                                         l10n.deleteButton,
-                                        style: TextStyle(color: Theme.of(context).colorScheme.error),
+                                        style: TextStyle(
+                                          color: Theme.of(context).colorScheme.error,
+                                        ),
                                       ),
                                     ),
                                   ],

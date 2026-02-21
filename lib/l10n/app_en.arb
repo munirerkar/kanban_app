@@ -84,5 +84,13 @@
   "profileUnknownName": "Unknown User",
   "profileUnknownEmail": "Email not available",
   "workspaceDrawerTitle": "Workspaces",
-  "workspaceDrawerNoWorkspaces": "There is no workspace available for your account yet"
+  "workspaceDrawerNoWorkspaces": "There is no workspace available for your account yet",
+  "workspaceDrawerMyWorkspaces": "My Workspaces",
+  "workspaceDrawerSharedWithMe": "Shared with Me",
+  "workspaceActionEdit": "Edit",
+  "workspaceActionDelete": "Delete",
+  "workspaceActionLeave": "Leave",
+  "workspaceOwnerLabel": "Owner: {ownerName}",
+  "workspaceDeleteConfirmationMessage": "Are you sure you want to delete workspace \"{workspaceName}\"? This action cannot be undone.",
+  "workspaceLeaveConfirmationMessage": "Are you sure you want to leave workspace \"{workspaceName}\"?"
 }

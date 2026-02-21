@@ -293,4 +293,34 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get workspaceDrawerNoWorkspaces =>
       'There is no workspace available for your account yet';
+
+  @override
+  String get workspaceDrawerMyWorkspaces => 'My Workspaces';
+
+  @override
+  String get workspaceDrawerSharedWithMe => 'Shared with Me';
+
+  @override
+  String get workspaceActionEdit => 'Edit';
+
+  @override
+  String get workspaceActionDelete => 'Delete';
+
+  @override
+  String get workspaceActionLeave => 'Leave';
+
+  @override
+  String workspaceOwnerLabel(Object ownerName) {
+    return 'Owner: $ownerName';
+  }
+
+  @override
+  String workspaceDeleteConfirmationMessage(Object workspaceName) {
+    return 'Are you sure you want to delete workspace \"$workspaceName\"? This action cannot be undone.';
+  }
+
+  @override
+  String workspaceLeaveConfirmationMessage(Object workspaceName) {
+    return 'Are you sure you want to leave workspace \"$workspaceName\"?';
+  }
 }
