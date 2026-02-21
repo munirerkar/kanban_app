@@ -30,6 +30,7 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
       final authViewModel = context.read<AuthViewModel>();
       final workspaceViewModel = context.read<WorkspaceViewModel>();
       final taskViewModel = context.read<TaskViewModel>();
+      final l10n = AppLocalizations.of(context)!;
 
       await authViewModel.refreshCurrentUser();
       if (!mounted) return;
@@ -45,7 +46,7 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
       await taskViewModel.setCurrentWorkspaceId(
         workspaceViewModel.currentWorkspace?.id,
         fetch: true,
-        context: context,
+        l10n: l10n,
       );
     });
   }
@@ -189,13 +190,17 @@ class _AppViewState extends State<AppView> with SingleTickerProviderStateMixin {
                                       : null,
                                   onTap: () async {
                                     final workspaceViewModel = context.read<WorkspaceViewModel>();
-                                    workspaceViewModel.selectWorkspace(workspace);
+                                    final taskViewModel = context.read<TaskViewModel>();
+                                    final l10n = AppLocalizations.of(context)!;
 
+                                    workspaceViewModel.selectWorkspace(workspace);
                                     await workspaceViewModel.fetchWorkspaceMembers(workspace.id);
-                                    await context.read<TaskViewModel>().setCurrentWorkspaceId(
+                                    if (!context.mounted) return;
+
+                                    await taskViewModel.setCurrentWorkspaceId(
                                       workspace.id,
                                       fetch: true,
-                                      context: context,
+                                      l10n: l10n,
                                     );
                                     if (!context.mounted) return;
                                     Navigator.pop(context);

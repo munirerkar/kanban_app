@@ -40,7 +40,7 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
         isScrollable: false,
         indicatorColor: theme.colorScheme.onPrimary,
         labelColor: theme.colorScheme.onPrimary,
-        unselectedLabelColor: theme.colorScheme.onPrimary.withOpacity(0.7),
+        unselectedLabelColor: theme.colorScheme.onPrimary.withValues(alpha: 0.7),
         labelStyle: const TextStyle(fontWeight: FontWeight.bold),
         tabs: [
           _buildTabItem(l10n.appBarBacklog, taskViewModel.getTasksByStatus(TaskStatus.BACKLOG, workspaceMembers).length, theme),
@@ -61,7 +61,7 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               decoration: BoxDecoration(
-                color: theme.colorScheme.onPrimary.withOpacity(0.25),
+                color: theme.colorScheme.onPrimary.withValues(alpha: 0.25),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text("$count", style: TextStyle(fontSize: 10, color: theme.colorScheme.onPrimary, fontWeight: FontWeight.bold)),
@@ -96,7 +96,7 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
         cursorColor: Theme.of(context).colorScheme.onPrimary,
         decoration: InputDecoration(
           hintText: l10n.searchHint, // Use localized hint text
-          hintStyle: TextStyle(color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7)),
+          hintStyle: TextStyle(color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.7)),
           border: InputBorder.none,
         ),
       );
@@ -147,7 +147,6 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   List<Widget> _buildActions(BuildContext context, TaskViewModel viewModel) {
-    final l10n = AppLocalizations.of(context)!;
     final colorIconKey = GlobalKey();
 
     if (viewModel.isSearchMode) {
@@ -173,7 +172,7 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
                 context: context,
                 barrierDismissible: true,
                 barrierLabel: '',
-                barrierColor: Colors.black.withOpacity(0.4),
+                barrierColor: Colors.black.withValues(alpha: 0.4),
                 transitionDuration: const Duration(milliseconds: 200),
                 pageBuilder: (context, anim1, anim2) {
                   return Stack(
@@ -188,6 +187,7 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
                 },
               );
 
+              if (!context.mounted) return;
               if (picked != null) {
                 await viewModel.applyColorToSelected(context, picked);
               }
@@ -195,7 +195,7 @@ class KanbanAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: Container(
               width: 36,
               height: 36,
-              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7))),
+              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.7))),
               child: Center(child: Icon(Icons.circle, size: 18, color: Theme.of(context).colorScheme.onPrimary)),
             ),
           ),

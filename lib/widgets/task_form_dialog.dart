@@ -381,7 +381,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                             _selectedUserIds.remove(user.id);
                           }
                         });
-                        this.setState(() {});
+                        setState(() {});
                       },
                     );
                   },

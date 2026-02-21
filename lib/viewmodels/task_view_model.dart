@@ -83,7 +83,7 @@ class TaskViewModel extends ChangeNotifier {
   Future<void> setCurrentWorkspaceId(
     int? workspaceId, {
     bool fetch = false,
-    BuildContext? context,
+    AppLocalizations? l10n,
   }) async {
     final changed = _currentWorkspaceId != workspaceId;
     _currentWorkspaceId = workspaceId;
@@ -94,15 +94,18 @@ class TaskViewModel extends ChangeNotifier {
       notifyListeners();
     }
 
-    if (fetch && context != null) {
-      await fetchTasks(context);
+    if (fetch && l10n != null) {
+      await fetchTasksWithL10n(l10n);
     }
   }
 
   // Backend'den Verileri Çek
   Future<void> fetchTasks(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
+    await fetchTasksWithL10n(l10n);
+  }
 
+  Future<void> fetchTasksWithL10n(AppLocalizations l10n) async {
     if (_currentWorkspaceId == null) {
       _tasks = [];
       _errorMessage = l10n.workspaceDrawerNoWorkspaces;
@@ -514,7 +517,7 @@ class TaskViewModel extends ChangeNotifier {
         );
       }
       // After favorites changed, re-fetch to get ordering consistent from backend
-      await fetchTasks(context);
+      await fetchTasksWithL10n(l10n);
     } catch (e) {
       _errorMessage = l10n.viewModelUpdateFailed(e.toString());
       notifyListeners();

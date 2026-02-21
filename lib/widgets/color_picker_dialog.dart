@@ -15,7 +15,7 @@ class ColorPickerDialog extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(8.0),
         decoration: BoxDecoration(
-          color: Colors.grey[800]?.withOpacity(0.9),
+          color: Colors.grey[800]?.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(12.0),
         ),
         child: Column(
@@ -31,7 +31,7 @@ class ColorPickerDialog extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: _parseColor(colorString),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 2),
                   ),
                 ),
               ),
@@ -45,7 +45,7 @@ class ColorPickerDialog extends StatelessWidget {
   Color _parseColor(String colorString) {
     try {
       var s = colorString.replaceAll('#', '');
-      if (s.length == 6) s = 'FF' + s;
+      if (s.length == 6) s = 'FF$s';
       return Color(int.parse(s, radix: 16));
     } catch (_) {
       return Colors.transparent;

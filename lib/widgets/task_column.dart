@@ -197,20 +197,22 @@ class TaskColumn extends StatelessWidget {
                 // Yön Kontrolü: Hangi statüdeyiz, nereye gidiyoruz?
                 if (direction == DismissDirection.endToStart) {
                   // SAĞA KAYDIRMA (İLERİ GİT) ->
-                  if (task.status == TaskStatus.BACKLOG)
+                  if (task.status == TaskStatus.BACKLOG) {
                     newStatus = TaskStatus.TODO;
-                  else if (task.status == TaskStatus.TODO)
+                  } else if (task.status == TaskStatus.TODO) {
                     newStatus = TaskStatus.IN_PROGRESS;
-                  else if (task.status == TaskStatus.IN_PROGRESS)
+                  } else if (task.status == TaskStatus.IN_PROGRESS) {
                     newStatus = TaskStatus.DONE;
+                  }
                 } else {
                   // SOLA KAYDIRMA (GERİ GİT) <-
-                  if (task.status == TaskStatus.DONE)
+                  if (task.status == TaskStatus.DONE) {
                     newStatus = TaskStatus.IN_PROGRESS;
-                  else if (task.status == TaskStatus.IN_PROGRESS)
+                  } else if (task.status == TaskStatus.IN_PROGRESS) {
                     newStatus = TaskStatus.TODO;
-                  else if (task.status == TaskStatus.TODO)
+                  } else if (task.status == TaskStatus.TODO) {
                     newStatus = TaskStatus.BACKLOG;
+                  }
                 }
 
                 if (newStatus != null) {
@@ -240,13 +242,13 @@ class TaskColumn extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: (task.color != null && task.color!.isNotEmpty)
                         ? _parseColor(task.color!, theme)
-                        : (isSelected ? theme.colorScheme.primary.withOpacity(0.1) : theme.colorScheme.surface),
+                        : (isSelected ? theme.colorScheme.primary.withValues(alpha: 0.1) : theme.colorScheme.surface),
                     border: isSelected ? Border.all(color: theme.colorScheme.primary, width: 2) : null,
                     // Seçiliyse mavi çerçeve
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: isSelected ? [] : [
                       // Seçiliyse gölgeyi kaldır (düz görünsün)
-                      BoxShadow(color: theme.shadowColor.withOpacity(0.08),
+                      BoxShadow(color: theme.shadowColor.withValues(alpha: 0.08),
                           spreadRadius: 2,
                           blurRadius: 8,
                           offset: const Offset(0, 2)
@@ -299,7 +301,7 @@ class TaskColumn extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                     color: (task.color != null && task.color!.isNotEmpty)
-                                        ? (_textColorForBackground(task.color!, theme).withOpacity(0.9))
+                                        ? (_textColorForBackground(task.color!, theme).withValues(alpha: 0.9))
                                         : theme.colorScheme.onSurfaceVariant,
                                     fontSize: 13),
                               ),
@@ -414,7 +416,7 @@ class TaskColumn extends StatelessWidget {
                                   padding: const EdgeInsets.symmetric(horizontal: 6.0),
                                   child: Icon(
                                     task.favorite ? Icons.star : Icons.star_border,
-                                    color: task.favorite ? Colors.amber : Colors.amber.withOpacity(0.6),
+                                    color: task.favorite ? Colors.amber : Colors.amber.withValues(alpha: 0.6),
                                     size: 24,
                                   ),
                                 ),
@@ -425,7 +427,7 @@ class TaskColumn extends StatelessWidget {
                                 child: Container(
                                   padding: const EdgeInsets.all(12),
                                   color: Colors.transparent,
-                                  child: Icon(Icons.drag_indicator, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5), size: 20),
+                                  child: Icon(Icons.drag_indicator, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5), size: 20),
                                 ),
                               ),
                             ],
@@ -445,7 +447,7 @@ class TaskColumn extends StatelessWidget {
 Color _parseColor(String colorString, ThemeData theme) {
   try {
     var s = colorString.replaceAll('#', '');
-    if (s.length == 6) s = 'FF' + s;
+    if (s.length == 6) s = 'FF$s';
     return Color(int.parse(s, radix: 16));
   } catch (_) {
     return theme.colorScheme.surface;
